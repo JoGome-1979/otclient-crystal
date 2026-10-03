@@ -1,0 +1,26 @@
+OTMapas — fluxo com o CrystalServer pela VPS
+
+1. Abra OTMapas.exe e vá à aba Servidor SSH.
+2. Preencha o host/IP ou alias, o usuário e a porta SSH. Usuário e porta podem
+   ficar vazios se já estiverem definidos no arquivo ~/.ssh/config.
+3. O caminho padrão é /home/crystal/crystalserver/data-global/world/world.otbm.
+   Use um caminho Linux absoluto sem espaços.
+4. Clique em “Baixar mapa da VPS”. O mapa será validado e selecionado na aba
+   Descompactar. Clique em Descompactar e Salvar como; depois, abra o mapa
+   salvo no Canary Map Editor.
+5. Edite e salve no editor. Na aba Compactar, abra o OTBM editado, compacte e
+   salve como um novo arquivo .otbm GZIP.
+6. Volte à aba Servidor SSH, marque que o CrystalServer está parado ou em
+   manutenção, clique em “Publicar mapa compactado” e selecione o arquivo salvo.
+   O app faz backup remoto antes de substituir o mapa.
+7. Inicie o CrystalServer para ele carregar o novo mapa.
+
+O app usa ssh.exe/scp.exe do OpenSSH do Windows ou Git for Windows. Configure
+uma chave SSH no perfil do Windows ou no ssh-agent. Senhas e chaves privadas
+nunca são gravadas pelo aplicativo. A chave do host precisa estar previamente
+validada em known_hosts; conecte pelo PowerShell e confira a impressão digital
+antes de aceitar um host novo.
+
+A publicação troca somente o arquivo no disco. Ela não atualiza o mapa já
+carregado em memória pelo servidor; não publique com o servidor ativo.
+Spawns, casas e outros arquivos auxiliares não são enviados junto com world.otbm.

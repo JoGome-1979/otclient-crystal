@@ -1,0 +1,340 @@
+{
+  "current_otui": "D:/otclient-main/modules/updater/updater.otui",
+  "canvas": [
+    {
+      "type": "Panel",
+      "name": "Panel",
+      "x": -60.0,
+      "y": -30.0,
+      "width": 120.0,
+      "height": 60.0,
+      "z": 9.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "Panel",
+          "pos": "-60 -30",
+          "size": "120 60"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UITextEdit",
+      "name": "UITextEdit",
+      "x": -60.0,
+      "y": -30.0,
+      "width": 120.0,
+      "height": 60.0,
+      "z": 8.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UITextEdit",
+          "pos": "-60 -30",
+          "size": "120 60"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UIItem",
+      "name": "UIItem",
+      "x": -60.0,
+      "y": -30.0,
+      "width": 120.0,
+      "height": 60.0,
+      "z": 7.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UIItem",
+          "pos": "-60 -30",
+          "size": "120 60"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UICreature",
+      "name": "UICreature",
+      "x": -60.0,
+      "y": -30.0,
+      "width": 120.0,
+      "height": 60.0,
+      "z": 6.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UICreature",
+          "pos": "-60 -30",
+          "size": "120 60"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UIWidget",
+      "name": "UIWidget",
+      "x": -80.0,
+      "y": -50.0,
+      "width": 150.0,
+      "height": 100.0,
+      "z": 5.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UIWidget",
+          "pos": "-80 -50",
+          "size": "150 100"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UIButton",
+      "name": "UIButton",
+      "x": -60.0,
+      "y": -20.0,
+      "width": 120.0,
+      "height": 30.0,
+      "z": 4.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UIButton",
+          "pos": "-60 -20",
+          "size": "120 30"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UIImage",
+      "name": "UIImage",
+      "x": -50.0,
+      "y": -50.0,
+      "width": 100.0,
+      "height": 100.0,
+      "z": 3.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UIImage",
+          "pos": "-50 -50",
+          "size": "100 100"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UILabel",
+      "name": "UILabel",
+      "x": -50.0,
+      "y": -10.0,
+      "width": 100.0,
+      "height": 20.0,
+      "z": 2.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UILabel",
+          "pos": "-50 -10",
+          "size": "100 20"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "UIWindow",
+      "name": "UIWindow",
+      "x": -200.0,
+      "y": -150.0,
+      "width": 400.0,
+      "height": 300.0,
+      "z": 1.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "UIWindow",
+          "pos": "-200 -150",
+          "size": "400 300"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "Button",
+      "name": "Button36",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 100.0,
+      "height": 50.0,
+      "z": 0.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "Button36",
+          "pos": "0 0",
+          "size": "100 50",
+          "margin-left": "90",
+          "margin-right": "90",
+          "!text": "tr('Cancelar')"
+        },
+        "states": {},
+        "events": {
+          "onClick": "Updater.abort()"
+        },
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "ProgressBar",
+      "name": "downloadProgress",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 100.0,
+      "height": 50.0,
+      "z": 0.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "downloadProgress",
+          "pos": "0 0",
+          "size": "100 50",
+          "height": "15",
+          "background-color": "#085670",
+          "margin-bottom": "5",
+          "margin-top": "5",
+          "visible": "false"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "Label",
+      "name": "downloadStatus",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 100.0,
+      "height": 50.0,
+      "z": 0.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "downloadStatus",
+          "pos": "0 0",
+          "size": "100 50",
+          "text-align": "center",
+          "text-auto-resize": "true",
+          "text-wrap": "true",
+          "visible": "false"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "ProgressBar",
+      "name": "mainProgress",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 100.0,
+      "height": 50.0,
+      "z": 0.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "mainProgress",
+          "pos": "0 0",
+          "size": "100 50",
+          "height": "15",
+          "background-color": "#085670",
+          "margin-bottom": "5",
+          "margin-top": "5"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "Label",
+      "name": "status",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 100.0,
+      "height": 50.0,
+      "z": 0.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "status",
+          "pos": "0 0",
+          "size": "100 50",
+          "!text": "tr('Check update...')",
+          "text-align": "center"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    },
+    {
+      "type": "StaticMainWindow",
+      "name": "StaticMainWindow0",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 100.0,
+      "height": 50.0,
+      "z": 0.0,
+      "parent": null,
+      "otui_props": {
+        "props": {
+          "id": "StaticMainWindow0",
+          "pos": "0 0",
+          "size": "100 50"
+        },
+        "states": {},
+        "events": {},
+        "functions": {},
+        "inherit": null
+      }
+    }
+  ]
+}

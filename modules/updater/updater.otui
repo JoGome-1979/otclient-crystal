@@ -1,0 +1,41 @@
+StaticMainWindow
+  id: updaterWindow
+  !text: tr('<--- UPDATER --->')
+  width: 350
+
+  layout:
+    type: verticalBox
+    fit-children: true
+      
+  Label
+    id: status
+    !text: tr('Check update...')
+    text-align: center
+
+  ProgressBar
+    id: mainProgress
+    height: 15
+    background-color: #085670
+    margin-bottom: 5
+    margin-top: 5
+
+  Label
+    id: downloadStatus
+    text-align: center
+    text-auto-resize: true
+    text-wrap: true
+    visible: false
+
+  ProgressBar
+    id: downloadProgress
+    height: 15
+    background-color: #085670
+    margin-bottom: 5
+    margin-top: 5
+    visible: false
+          
+  Button
+    margin-left: 90
+    margin-right: 90
+    !text: tr('Cancelar')
+    @onClick: Updater.abort()

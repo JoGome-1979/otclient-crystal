@@ -1,0 +1,371 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CRYSTAL_BUILD_APK": "OFF",
+        "CRYSTAL_BUILD_PORTABLE": "OFF",
+        "OTCLIENT_BUILD_CLIENT": "ON",
+        "OTCLIENT_BUILD_TESTS": "OFF",
+        "ASAN_ENABLED": "OFF",
+        "DEBUG_LOG": "OFF",
+        "VCPKG_MANIFEST_FEATURES": "",
+        "SPEED_UP_BUILD_UNITY": "OFF"
+      }
+    },
+    {
+      "name": "windows-x64-release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "BUILD_STATIC_LIBRARY": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets",
+        "VCPKG_PLATFORM_TOOLSET": "v143",
+        "VCPKG_BUILD_TYPE": "release",
+        "OPTIONS_ENABLE_SCCACHE": "ON",
+        "CRYSTAL_WINDOWS_TARGET_ARCH": "x64",
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "displayName": "windows-x64-release"
+    },
+    {
+      "name": "windows-x86-release",
+      "inherits": "windows-x64-release",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x86-windows-static-release",
+        "CRYSTAL_WINDOWS_TARGET_ARCH": "x86",
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      },
+      "displayName": "windows-x86-release"
+    },
+    {
+      "name": "windows-x64-debug",
+      "inherits": "windows-x64-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DEBUG_LOG": "ON",
+        "BUILD_STATIC_LIBRARY": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_BUILD_TYPE": "debug",
+        "TOGGLE_PRE_COMPILED_HEADER": "OFF",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      },
+      "displayName": "windows-x64-debug"
+    },
+    {
+      "name": "windows-x86-debug",
+      "displayName": "windows-x86-debug",
+      "inherits": "windows-x64-debug",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x86-windows",
+        "CRYSTAL_WINDOWS_TARGET_ARCH": "x86",
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      }
+    },
+    {
+      "name": "windows-tests",
+      "inherits": "windows-x64-debug",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-test-debug",
+        "VCPKG_MANIFEST_FEATURES": "tests",
+        "OTCLIENT_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "windows-release-asan",
+      "inherits": "windows-x64-release",
+      "cacheVariables": {
+        "ASAN_ENABLED": "ON",
+        "BUILD_STATIC_LIBRARY": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-test-release",
+        "VCPKG_MANIFEST_FEATURES": "tests",
+        "OTCLIENT_BUILD_TESTS": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+      }
+    },
+    {
+      "name": "windows-debug-msbuild",
+      "inherits": "windows-x64-debug",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": null,
+        "CMAKE_CXX_COMPILER": null
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64"
+    },
+    {
+      "name": "linux-release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "/usr/bin/gcc-13",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++-13",
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "VCPKG_HOST_TRIPLET": "x64-linux",
+        "VCPKG_BUILD_TYPE": "release",
+        "OPTIONS_ENABLE_CCACHE": "ON",
+        "TOGGLE_DIRECTX": "OFF"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "environment": {
+        "CC": "/usr/bin/gcc-13",
+        "CXX": "/usr/bin/g++-13"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "inherits": "linux-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DEBUG_LOG": "ON",
+        "VCPKG_BUILD_TYPE": "debug",
+        "TOGGLE_PRE_COMPILED_HEADER": "OFF"
+      }
+    },
+    {
+      "name": "linux-tests",
+      "inherits": "linux-debug",
+      "cacheVariables": {
+        "VCPKG_MANIFEST_FEATURES": "tests",
+        "OTCLIENT_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "macos-release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_STATIC_LIBRARY": "ON",
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "VCPKG_HOST_TRIPLET": "arm64-osx",
+        "VCPKG_BUILD_TYPE": "release",
+        "OPTIONS_ENABLE_IPO": "OFF",
+        "TOGGLE_DIRECTX": "OFF"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "inherits": "macos-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DEBUG_LOG": "ON",
+        "BUILD_STATIC_LIBRARY": "OFF",
+        "VCPKG_BUILD_TYPE": "debug",
+        "TOGGLE_PRE_COMPILED_HEADER": "OFF"
+      }
+    },
+    {
+      "name": "android-release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CRYSTAL_BUILD_APK": "ON",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CRYSTAL_ANDROID_ABIS": "arm64-v8a",
+        "CRYSTAL_ANDROID_JOBS": "10"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "android-debug",
+      "inherits": "android-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-portable-release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CRYSTAL_BUILD_PORTABLE": "ON",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CRYSTAL_JOBS": "10"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-portable-debug",
+      "inherits": "linux-portable-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-release",
+      "hidden": true,
+      "inherits": "windows-x64-release",
+      "cacheVariables": {
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      }
+    },
+    {
+      "name": "windows-release-x86",
+      "hidden": true,
+      "inherits": "windows-x86-release",
+      "cacheVariables": {
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "hidden": true,
+      "inherits": "windows-x64-debug",
+      "cacheVariables": {
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-x64-release",
+      "configurePreset": "windows-x64-release"
+    },
+    {
+      "name": "windows-x86-release",
+      "configurePreset": "windows-x86-release"
+    },
+    {
+      "name": "windows-x64-debug",
+      "configurePreset": "windows-x64-debug"
+    },
+    {
+      "name": "windows-x86-debug",
+      "configurePreset": "windows-x86-debug"
+    },
+    {
+      "name": "windows-tests",
+      "configurePreset": "windows-tests"
+    },
+    {
+      "name": "windows-release-asan",
+      "configurePreset": "windows-release-asan"
+    },
+    {
+      "name": "windows-debug-msbuild",
+      "configurePreset": "windows-debug-msbuild",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-tests",
+      "configurePreset": "linux-tests"
+    },
+    {
+      "name": "macos-release",
+      "configurePreset": "macos-release"
+    },
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug"
+    },
+    {
+      "name": "android-release",
+      "configurePreset": "android-release"
+    },
+    {
+      "name": "android-debug",
+      "configurePreset": "android-debug"
+    },
+    {
+      "name": "linux-portable-release",
+      "configurePreset": "linux-portable-release"
+    },
+    {
+      "name": "linux-portable-debug",
+      "configurePreset": "linux-portable-debug"
+    },
+    {
+      "name": "windows-release",
+      "hidden": true,
+      "configurePreset": "windows-release"
+    },
+    {
+      "name": "windows-release-x86",
+      "hidden": true,
+      "configurePreset": "windows-release-x86"
+    },
+    {
+      "name": "windows-debug",
+      "hidden": true,
+      "configurePreset": "windows-debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-tests",
+      "configurePreset": "windows-tests",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release-asan",
+      "configurePreset": "windows-release-asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-tests",
+      "configurePreset": "linux-tests",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
