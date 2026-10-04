@@ -1,6 +1,6 @@
 
 <h1>
-  <img src="https://crystalgames.com.br/?donate/blob/main/data/images/clienticon.png?raw=true" width="32" alt="logo"/>
+  <img src="https://crystalgames.com.br/plugins/theme-canary/themes/canary/images/header/tibia-logo-artwork-top.gif" width="32" alt="logo"/>
   OTClient - Redemption
 </h1>
 
