@@ -1,102 +1,102 @@
-# Client Assets Auto-Install
+# Instalação Automática de Assets do Cliente
 
-This document describes the automatic client assets installation flow introduced in OTClient.
+Este documento descreve o fluxo de instalação automática de assets do cliente introduzido no OTClient.
 
-## Goal
+## Objetivo
 
-For modern Tibia client versions (>= 1281), OTClient must be able to:
+Para versões modernas do cliente Tibia (>= 1281), o OTClient deve ser capaz de:
 
-1. Detect missing assets for the selected version.
-2. Prompt the user to download required assets.
-3. Download and install assets automatically.
-4. Keep final installed files in the same paths already used by OTC runtime.
+1. Detectar assets ausentes para a versão selecionada.
+2. Solicitar ao usuário que baixe os assets necessários.
+3. Baixar e instalar os assets automaticamente.
+4. Manter os arquivos finais instalados nos mesmos caminhos já utilizados pelo runtime do OTC.
 
-## Final Install Paths (Source of Truth)
+## Caminhos Finais de Instalação (Fonte da Verdade)
 
-Installed assets must end up in:
+Os assets instalados devem terminar em:
 
 - `data/things/<version>/`
 - `data/sounds/<version>/`
-- runtime extras (when provided by upstream package), such as `bin/*`, in client runtime paths.
+- extras do runtime (quando fornecidos pelo pacote upstream), como `bin/*`, nos caminhos esperados do runtime do cliente.
 
-Do not introduce an alternative permanent assets root for runtime loading.
+Não introduza uma raiz alternativa permanente para assets em runtime.
 
-## Main Module
+## Módulo Principal
 
-- Lua module: `modules/client_assets/client_assets.lua`
-- Enter-game integration: `modules/client_entergame/entergame.lua`
-- Modern things/sounds loading: `modules/game_things/things.lua`
+- Módulo Lua: `modules/client_assets/client_assets.lua`
+- Integração no início do jogo: `modules/client_entergame/entergame.lua`
+- Carregamento moderno de things/sounds: `modules/game_things/things.lua`
 
-## Download / Install Strategy
+## Estratégia de Download / Instalação
 
-The flow supports:
+O fluxo suporta:
 
-- archive installation from the release/tag source ZIP as the default path
-- manifest-driven installation as a fallback path when the archive cannot be installed
-- manifest hash identifier installation into `data/things/<version>/assets.json.sha256`
-- packaged files list (including large binaries distributed as `.zip`/`.rar`)
-- extraction of `.zip` and `.rar`
-- optional `.lzma` decompression
+- instalação por arquivo compactado do ZIP da release/tag como caminho padrão
+- instalação guiada por manifesto como caminho de fallback quando o arquivo compactado não puder ser instalado
+- instalação por identificador de hash do manifesto em `data/things/<version>/assets.json.sha256`
+- lista de arquivos empacotados (incluindo binários grandes distribuídos como `.zip`/`.rar`)
+- extração de arquivos `.zip` e `.rar`
+- descompressão opcional de `.lzma`
 
-## Integrity and Security Defaults
+## Integridade e Padrões de Segurança
 
-Defaults are hardened:
+Os padrões são reforçados:
 
 - `strictManifestSha256 = true`
 - `allowRawFallbackHashMismatch = false`
 - `allowMissingPackedRawFallback = true`
 
-`allowMissingPackedRawFallback` is a narrow compatibility fallback for repository releases that reference official `.lzma`/archive package files not stored in the assets repository. It is only used after the packed file is missing and the client falls back to the raw file from the same manifest/release source. It does not enable arbitrary hash mismatches for normal raw downloads.
+`allowMissingPackedRawFallback` é um fallback de compatibilidade estreita para releases do repositório que referenciam arquivos oficiais `.lzma`/arquivo compactado não armazenados no repositório de assets. Ele só é usado quando necessário e não deve se tornar o comportamento padrão.
 
-Release cache is scoped per source (`releasesUrl` / repository key), avoiding stale cross-source reuse.
+O cache de release é limitado por fonte (`releasesUrl` / chave do repositório), evitando reutilização antiga entre fontes diferentes.
 
-## Runtime/Platform Notes
+## Observações de Runtime / Plataforma
 
-- Desktop targets use `libarchive` for archive extraction when it is available.
-- Builds without `libarchive` still extract `.zip` archives through the vendored minizip fallback. This keeps the GitHub source ZIP flow functional on clean desktop builds.
-- `.rar` extraction requires `libarchive`. If a packaged `.rar` is optional and the build cannot extract it, installation should fail clearly or skip it according to the package configuration.
-- The default flow is archive-first because the release source ZIP is the canonical package for this repository. The manifest path remains a compatibility fallback, not the primary installation path.
-- Emscripten login fallback was aligned with native `httpLogin` semantics.
+- Alvos desktop usam `libarchive` para extração de arquivos compactados quando disponível.
+- Builds sem `libarchive` ainda extraem arquivos `.zip` por meio do fallback vendorizado minizip. Isso mantém o fluxo de ZIP da source do GitHub funcional em builds desktop limpos.
+- A extração de `.rar` requer `libarchive`. Se um `.rar` empacotado for opcional e a build não puder extrair, a instalação deve falhar de forma clara ou ignorar conforme a configuração do pacote.
+- O fluxo padrão é “primeiro arquivo compactado” porque o ZIP da source da release é o pacote canônico para este repositório. O caminho do manifesto permanece um fallback de compatibilidade, não o caminho principal de instalação.
+- O fallback de login para Emscripten foi alinhado com a semântica nativa de `httpLogin`.
 
-## UX Behavior
+## Comportamento da UX
 
-- Missing-assets dialog prompts before download.
-- Download window supports cancellation.
-- Progress supports indeterminate mode when remote does not provide reliable content length.
-- Console logs show major phases and final install paths.
+- A caixa de diálogo de assets ausentes é exibida antes do download.
+- A janela de download suporta cancelamento.
+- O progresso suporta modo indeterminado quando o servidor remoto não fornece tamanho do conteúdo confiável.
+- Os logs do console mostram as fases principais e os caminhos finais de instalação.
 
-## Troubleshooting
+## Solução de Problemas
 
-### 1) Assets appear downloaded but game still cannot load
+### 1) Os assets parecem ter sido baixados, mas o jogo ainda não consegue carregar
 
-Check:
+Verifique:
 
 - `data/things/<version>/catalog-content.json`
 - `data/things/<version>/assets.json.sha256`
-- `data/sounds/<version>/catalog-sound.json` (when sounds are enabled)
+- `data/sounds/<version>/catalog-sound.json` (quando os sons estiverem habilitados)
 
-### 2) Missing `.lzma` package file
+### 2) Arquivo `.lzma` ausente
 
-If the console shows a 404 for `*.lzma`, the client is using the manifest fallback instead of the release source ZIP. First check why archive installation failed. The manifest fallback can install raw files through `allowMissingPackedRawFallback`, but this path is slower and should not be the normal flow for clean installs.
+Se o console mostrar um 404 para `*.lzma`, o cliente está usando o fallback do manifesto em vez do ZIP da release. Primeiro, verifique por que a instalação por arquivo compactado falhou. O fallback do manifesto pode instalar arquivos brutos em vez do pacote comprimido, mas isso não deve ser o caminho preferido.
 
-### 3) SHA-256 mismatch
+### 3) Divergência de SHA-256
 
-By default, mismatches fail installation. Verify upstream files and hashes first before changing integrity flags.
+Por padrão, divergências falham a instalação. Verifique primeiro os arquivos upstream e os hashes antes de alterar as flags de integridade.
 
-### 4) Slow progress / “stuck”
+### 4) Progresso lento / “travado”
 
-If Content-Length is missing, UI may run in indeterminate mode during download and extraction. Use console logs to confirm active phase.
+Se o `Content-Length` não estiver presente, a interface pode operar em modo indeterminado durante o download e a extração. Use os logs do console para confirmar a fase ativa.
 
-## Configuration (init.lua)
+## Configuração (init.lua)
 
-`Services.clientAssets` supports runtime behavior controls (repository, archive preference, sounds, packaged files, hash strictness, etc.). Keep secure defaults unless there is a specific compatibility reason to relax.
+`Services.clientAssets` oferece controles de comportamento em runtime (repositório, preferência por arquivo compactado, sons, arquivos empacotados, rigor de hash, etc.). Mantenha os padrões seguros, a menos que exista uma compatibilidade específica justificável.
 
-## Maintenance Checklist
+## Checklist de Manutenção
 
-When changing this system, validate:
+Ao alterar este sistema, valide:
 
-1. Missing assets prompt appears for modern version.
-2. Install completes into `data/things/<version>` and `data/sounds/<version>`.
-3. Runtime loads modern assets from those paths.
-4. Hash verification behavior matches configuration.
-5. Windows/Linux CI remains green; Android does not attempt to resolve unsupported libarchive linkage.
+1. A mensagem de assets ausentes aparece para uma versão moderna.
+2. A instalação conclui em `data/things/<version>` e `data/sounds/<version>`.
+3. O runtime carrega os assets modernos nesses caminhos.
+4. O comportamento de verificação de hash corresponde à configuração.
+5. A CI do Windows/Linux continua verde; o Android não tenta resolver linkagem de `libarchive` não suportada.
