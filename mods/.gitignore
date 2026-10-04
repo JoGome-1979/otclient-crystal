@@ -24,3 +24,16 @@ CMakeCache.txt
 *.so
 *.so.*
 *.dylib
+# Local credentials/environment remain ignored inside runtime folders too.
+.env
+.env.*
+!.env.example
+*.key
+*.pem.key
+*.p12
+*.p8
+*.pfx
+*.credentials
+*.jks
+*.keystore
+local.properties
