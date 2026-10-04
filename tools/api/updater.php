@@ -5,12 +5,14 @@ $files_dir = __DIR__ . DIRECTORY_SEPARATOR . 'files';
 $files_url = 'https://crystalgames.com.br/api/files'; // No trailing slash.
 $common_roots = array('init.lua', 'data', 'modules', 'mods');
 $cache_interval = 60;
+// Atomic publication of this optional manifest activates a pinned GitHub release.
+$github_release_file = __DIR__ . DIRECTORY_SEPARATOR . 'github-release.json';
 
-// Prefer separate package directories; legacy root filenames remain supported.
+// Publish binaries directly in files/. Older layouts remain readable during migration.
 // Do not use the Linux executable as a macOS executable.
 $desktop_binaries = array(
-    'windows' => array('binaries/windows/x64/Clientex64.exe', 'binaries/windows/x64/Crystal.exe', 'binaries/windows/Crystal.exe', 'Crystal.exe', 'otclient_x64.exe'),
-    'linux' => array('binaries/linux/Crystal', 'Crystal'),
+    'windows' => array('Crystalx64.exe', 'binaries/windows/x64/Clientex64.exe', 'binaries/windows/x64/Crystal.exe', 'binaries/windows/Crystal.exe', 'Crystal.exe', 'otclient_x64.exe'),
+    'linux' => array('Crystalx64', 'binaries/linux/Crystal', 'Crystal'),
     'mac' => array('binaries/mac/Crystal', 'Crystal-mac')
 );
 $mobile_packages = array(
@@ -104,9 +106,22 @@ if ($family === 'windows') {
     $arch = strtolower($data->arch ?? 'x64');
     if ($arch === 'x86') {
         // Never fall back to the legacy x64 executable for a 32-bit client.
-        $desktop_binaries['windows'] = array('binaries/windows/x86/Clientex86.exe');
+        $desktop_binaries['windows'] = array('Crystalx86.exe', 'binaries/windows/x86/Clientex86.exe');
     } elseif ($arch !== 'x64') {
         $desktop_binaries['windows'] = array();
+    }
+}
+if ($family === 'linux') {
+    // Historical clients without an architecture field use the x64 package.
+    if (isset($data->arch) && !is_string($data->arch)) {
+        fail('Invalid client architecture');
+    }
+    $arch = strtolower($data->arch ?? 'x64');
+    if ($arch === 'x86') {
+        // A 32-bit client must never receive a legacy x64 ELF binary.
+        $desktop_binaries['linux'] = array('Crystalx86');
+    } elseif ($arch !== 'x64') {
+        $desktop_binaries['linux'] = array();
     }
 }
 $args = isset($data->args) && is_object($data->args) ? $data->args : new stdClass();
@@ -174,7 +189,41 @@ if ($files === null) {
     }
     // Cache failures do not prevent serving the freshly computed manifest.
 }
+$file_urls = array();
+$github_release = null;
+// Legacy clients still receive the complete VPS-only response until they update Lua.
+if (($data->updaterProtocol ?? null) === 2 && is_file($github_release_file)) {
+    $release = json_decode(file_get_contents($github_release_file), true);
+    if (!is_array($release) || ($release['schema'] ?? null) !== 1 ||
+        ($release['repository'] ?? null) !== 'JoGome-1979/otclient-crystal' ||
+        !is_string($release['commit'] ?? null) ||
+        !preg_match('/^[a-f0-9]{40}$/', $release['commit']) ||
+        !is_array($release['files'] ?? null) ||
+        !isset($release['files']['/init.lua'], $release['files']['/modules/updater/updater.lua'])) {
+        fail('Invalid published GitHub release manifest', 500);
+    }
+    $base = 'https://raw.githubusercontent.com/' . $release['repository'] . '/' . $release['commit'];
+    foreach ($release['files'] as $path => $checksum) {
+        if (!is_string($path) ||
+            !preg_match('~^/(?:init\.lua|(?:data|modules|mods)/.+)$~D', $path) ||
+            strpos($path, chr(92)) !== false || preg_match('/[\x00-\x1f]/', $path) ||
+            preg_match('~(?:^|/)\.{1,2}(?:/|$)~', $path) ||
+            preg_match('~\.(?:exe|dll|apk|ipa|dylib|dmg|pkg|deb|rpm|pdb|so(?:\.[0-9]+)*)$~i', $path) ||
+            preg_match('~\.app(?:/|$)~i', $path) ||
+            !is_string($checksum) || !preg_match('/^(?:0|[1-9a-f][a-f0-9]{0,7})$/D', $checksum)) {
+            fail('Invalid path or checksum in GitHub release manifest', 500);
+        }
+        $files[$path] = $checksum;
+        $encoded = implode('/', array_map('rawurlencode', explode('/', ltrim($path, '/'))));
+        $file_urls[$path] = $base . '/' . $encoded;
+    }
+    $github_release = array('repository' => $release['repository'], 'commit' => $release['commit']);
+}
 $ret = array('url' => $files_url, 'files' => (object)$files, 'keepFiles' => false);
+if ($github_release !== null) {
+    $ret['fileUrls'] = (object)$file_urls;
+    $ret['githubRelease'] = $github_release;
+}
 
 if ($family !== null && isset($desktop_binaries[$family])) {
     foreach ($desktop_binaries[$family] as $relative) {

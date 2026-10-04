@@ -7,7 +7,7 @@ test -f /source/CMakeLists.txt
 mkdir -p /workspace/src /workspace/downloads /export/client /export/updater
 # Only this generated container copy is synchronized/deleted; /source is read-only.
 rsync -a --delete --exclude=.git --exclude=.vs --exclude=.vscode \
-  --exclude=build --exclude=out --exclude=files --exclude=dist --exclude=dist-linux \
+  --exclude=build --exclude=out --exclude=files --include=/dist/ --include=/dist/scripts/ --include=/dist/scripts/*** --exclude=/dist/*** --exclude=dist-linux \
   --exclude=vcpkg_installed --exclude=android-output --exclude=android/.gradle \
   --exclude=android/.cxx --exclude=android/app/build \
   /source/ /workspace/src/
@@ -18,17 +18,18 @@ cmake -S /workspace/src -B /workspace/native -G Ninja \
   -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 \
   -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake \
   -DVCPKG_TARGET_TRIPLET=x64-linux -DVCPKG_HOST_TRIPLET=x64-linux \
-  -DVCPKG_INSTALLED_DIR=/workspace/vcpkg_installed -DVCPKG_BUILD_TYPE=release \
+  -DVCPKG_INSTALLED_DIR=/workspace/vcpkg_installed -DVCPKG_BUILD_TYPE="${build_type,,}" \
+  -DCRYSTAL_DISTRIBUTION_PRESET="linux-x64-portable-${build_type,,}" \
   -DOPTIONS_ENABLE_IPO=OFF -DSPEED_UP_BUILD_UNITY=OFF \
   -DTOGGLE_DIRECTX=OFF -DOTCLIENT_BUILD_TESTS=OFF \
   '-DCMAKE_EXE_LINKER_FLAGS=-static-libstdc++ -static-libgcc'
 cmake --build /workspace/native --parallel "$task_jobs"
-runtime=/workspace/src/dist/dist-linux
-if test "$build_type" = Debug; then runtime=/workspace/native/bin; fi
-binary="$runtime/Crystal"
+runtime="/workspace/src/dist/linux-x64-portable-${build_type,,}"
+binary=/workspace/native/bin/Crystal
 test -f "$binary"
 # Export current resources only; preserve the container's incremental build/cache.
 rsync -a --delete "$runtime/" /export/client/
+cp "$binary" /export/client/Crystal
 chmod +x /export/client/Crystal
 if test "$build_type" = Release; then
   cp "$binary" /export/updater/Crystal

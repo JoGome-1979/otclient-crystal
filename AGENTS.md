@@ -42,3 +42,9 @@ Reference: `docs/client-assets-auto-install.md`
 - Windows ARM64 ainda nao foi definido. Nao publicar arquivos no servidor automaticamente. Consulte DISTRIBUICAO.md e docs/INSTALADOR.md.
 
 - O usuario vai iniciar o novo repositorio: o .git anterior foi removido a pedido. Nao execute git init, git add ou commits sem nova instrucao. Pacotes existentes ficam no disco, ignorados pelo .gitignore; guarde no Git apenas fontes, recursos necessarios, configuracoes e scripts.
+
+- Binarios Windows do updater devem ficar diretamente em files/Crystalx86.exe e files/Crystalx64.exe. Nao gerar files/binaries/ nem duplicar Crystal.exe. Os nomes Clientex86.exe/Clientex64.exe dos pacotes instalaveis permanecem separados desta publicacao.
+
+- Linux usa linux-x64-release/debug e linux-x64-portable-release/debug. Mesmos caminhos por preset: build/, dist/, dist/scripts/, dist/instalador/. O usuario executa configure/build. Scripts .sh de empacotamento devem acompanhar o Git. files/Crystalx86 e files/Crystalx64 so sao atualizados pelo build Linux Release correspondente; binarios Windows/Android permanecem intactos.
+
+Linux nativo inclui linux-x86-release/debug e linux-x64-release/debug. x86 usa GCC 13 multilib (-m32) e vcpkg x86-linux, host x86-linux. Docker portatil segue x64. Payloads Linux em files/Crystalx86 e files/Crystalx64; API seleciona pela arquitetura e nunca oferece fallback x64 a clientes x86. Executavel instalado continua Crystal.

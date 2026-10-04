@@ -28,8 +28,6 @@ vc17/
 vc18/
 /build-emscripten-web/
 /bin/
-/data/sounds/*/
-/data/things/*/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -344,6 +342,7 @@ CMakeUserPresets.json
 !/dist/scripts/**/*.cmake
 !/dist/scripts/**/*.iss
 !/dist/scripts/**/*.md
+!/dist/scripts/**/*.sh
 /files/
 /backups/
 /cache/
@@ -383,3 +382,19 @@ replay_pid*.log
 *.p12
 *.p8
 *.credentials
+
+# Base runtime content belongs in Git; these scoped exceptions override
+# generic *.dat, *.spr, *.xml and other IDE patterns above.
+!/mods/
+!/mods/**/
+!/mods/**
+!/data/things/
+!/data/things/**/
+!/data/things/**
+!/data/sounds/
+!/data/sounds/**/
+!/data/sounds/**
+# Keep runtime installation markers, temporary downloads and editor state local.
+**/.client-assets-complete
+**/.otui_editor_state.json
+**/__pycache__/

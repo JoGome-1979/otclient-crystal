@@ -1,3 +1,26 @@
-*
-!.gitignore
-!README.md
+# Version the base runtime resources. Ignore only local/transient artifacts.
+*.log
+*.tmp
+*.part
+*.download
+*.bak
+*~
+.client-assets-complete
+.otui_editor_state.json
+__pycache__/
+.cache/
+cache/
+# Generated compiler products are not runtime sources.
+build/
+CMakeFiles/
+CMakeCache.txt
+*.exe
+*.dll
+*.apk
+*.pdb
+*.obj
+*.o
+*.a
+*.so
+*.so.*
+*.dylib

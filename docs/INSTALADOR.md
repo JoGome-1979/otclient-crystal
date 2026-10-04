@@ -6,7 +6,7 @@ O script valida os executaveis PE x86/x64 e os recursos de inicializacao de `dis
 
 A distribuicao minima contem somente o updater e seus recursos. O init.lua do pacote inicial encerra o cliente se o primeiro download for cancelado ou incompleto. O payload completo permanece em files/; Debug nao substitui os binarios Release.
 
-A API recebe `g_app.getBuildArch()` no campo arch e seleciona o executavel em files/binaries/windows/<arch>/. Antes de distribuir x86, publique manualmente tools/api/updater.php e files/. Clientes antigos sem arch continuam com a compatibilidade x64. Os caminhos finais data/things/<version>/ e data/sounds/<version>/ e os defaults strictManifestSha256=true e allowRawFallbackHashMismatch=false permanecem iguais.
+A API recebe `g_app.getBuildArch()` no campo arch e seleciona o executavel em files/Crystalx86.exe ou files/Crystalx64.exe. Antes de distribuir x86, publique manualmente tools/api/updater.php e files/. Clientes antigos sem arch continuam com a compatibilidade x64. Os caminhos finais data/things/<version>/ e data/sounds/<version>/ e os defaults strictManifestSha256=true e allowRawFallbackHashMismatch=false permanecem iguais.
 
 ## Verificacao apos suas compilacoes
 

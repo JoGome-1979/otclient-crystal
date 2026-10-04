@@ -1,6 +1,5 @@
 # Creates a clean updater payload from the authoritative runtime sources.
-# The destination is removed first so deleted or renamed source files cannot
-# remain published accidentally after a later compilation.
+# Resources are refreshed; unrelated platform binaries remain untouched.
 
 if(NOT DEFINED SOURCE_ROOT OR SOURCE_ROOT STREQUAL "")
   message(FATAL_ERROR "SOURCE_ROOT was not provided to SyncUpdaterFiles.cmake")
@@ -33,16 +32,16 @@ set(IS_PUBLISHABLE_BUILD FALSE)
 if(DEFINED BUILD_CONFIG AND BUILD_CONFIG MATCHES "^(Release|RelWithDebInfo|MinSizeRel)$")
   set(IS_PUBLISHABLE_BUILD TRUE)
 endif()
-if(DEFINED BINARY_PLATFORM AND BINARY_PLATFORM STREQUAL "windows" AND
+if(DEFINED BINARY_PLATFORM AND BINARY_PLATFORM MATCHES "^(windows|linux)$" AND
    IS_PUBLISHABLE_BUILD AND NOT DEFINED BINARY_ARCH)
-  message(FATAL_ERROR "BINARY_ARCH is required when publishing a Windows build")
+  message(FATAL_ERROR "BINARY_ARCH is required when publishing a desktop build")
 endif()
 if(DEFINED BINARY_ARCH AND NOT BINARY_ARCH MATCHES "^(x86|x64)$")
-  message(FATAL_ERROR "Unsupported Windows architecture: ${BINARY_ARCH}")
+  message(FATAL_ERROR "Unsupported desktop architecture: ${BINARY_ARCH}")
 endif()
-if(DEFINED BINARY_PLATFORM AND BINARY_PLATFORM STREQUAL "windows" AND
+if(DEFINED BINARY_PLATFORM AND BINARY_PLATFORM MATCHES "^(windows|linux)$" AND
    IS_PUBLISHABLE_BUILD AND (NOT DEFINED BINARY_FILE OR NOT EXISTS "${BINARY_FILE}"))
-  message(FATAL_ERROR "Windows publication requires an existing BINARY_FILE")
+  message(FATAL_ERROR "Desktop publication requires an existing BINARY_FILE")
 endif()
 # Preserve the last successfully published release across platform/debug builds.
 set(RELEASE_STAGING "${SOURCE_ROOT}/build/updater-releases")
@@ -52,18 +51,31 @@ foreach(RELEASE_NAME IN ITEMS Crystal.exe Crystal)
     file(COPY_FILE "${OUTPUT_ROOT}/${RELEASE_NAME}" "${RELEASE_STAGING}/${RELEASE_NAME}")
   endif()
 endforeach()
-# Rescue both architecture-specific payloads before rebuilding files/.
+# Keep each release recoverable before recreating files/. Migrate old paths once.
 foreach(WINDOWS_ARCH IN ITEMS x86 x64)
-  set(WINDOWS_EXECUTABLE "Cliente${WINDOWS_ARCH}.exe")
-  set(SAVED_BINARY "${RELEASE_STAGING}/windows/${WINDOWS_ARCH}/${WINDOWS_EXECUTABLE}")
-  set(PUBLISHED_BINARY "${OUTPUT_ROOT}/binaries/windows/${WINDOWS_ARCH}/${WINDOWS_EXECUTABLE}")
-  if(EXISTS "${PUBLISHED_BINARY}" AND NOT EXISTS "${SAVED_BINARY}")
-    get_filename_component(SAVED_DIRECTORY "${SAVED_BINARY}" DIRECTORY)
-    file(MAKE_DIRECTORY "${SAVED_DIRECTORY}")
-    file(COPY_FILE "${PUBLISHED_BINARY}" "${SAVED_BINARY}")
+  set(SAVED_BINARY "${RELEASE_STAGING}/windows/${WINDOWS_ARCH}/Crystal${WINDOWS_ARCH}.exe")
+  foreach(CANDIDATE IN ITEMS
+      "${OUTPUT_ROOT}/Crystal${WINDOWS_ARCH}.exe"
+      "${RELEASE_STAGING}/windows/${WINDOWS_ARCH}/Cliente${WINDOWS_ARCH}.exe"
+      "${OUTPUT_ROOT}/binaries/windows/${WINDOWS_ARCH}/Cliente${WINDOWS_ARCH}.exe")
+    if(NOT EXISTS "${SAVED_BINARY}" AND EXISTS "${CANDIDATE}")
+      get_filename_component(SAVED_DIRECTORY "${SAVED_BINARY}" DIRECTORY)
+      file(MAKE_DIRECTORY "${SAVED_DIRECTORY}")
+      file(COPY_FILE "${CANDIDATE}" "${SAVED_BINARY}")
+    endif()
+  endforeach()
+endforeach()
+# Keep published packages in place, including their file identity and timestamps.
+set(PRESERVED_PACKAGES
+  Crystal Crystalx64 Crystalx86 Crystalx86.exe Crystalx64.exe Crystal.apk android-version.json
+  Crystal-mac Crystal.ipa ios-version.json)
+file(GLOB PREVIOUS_ENTRIES LIST_DIRECTORIES TRUE "${OUTPUT_ROOT}/*")
+foreach(ENTRY IN LISTS PREVIOUS_ENTRIES)
+  get_filename_component(ENTRY_NAME "${ENTRY}" NAME)
+  if(NOT ENTRY_NAME IN_LIST PRESERVED_PACKAGES)
+    file(REMOVE_RECURSE "${ENTRY}")
   endif()
 endforeach()
-file(REMOVE_RECURSE "${OUTPUT_ROOT}")
 file(MAKE_DIRECTORY "${OUTPUT_ROOT}")
 
 file(COPY "${SOURCE_ROOT}/init.lua" DESTINATION "${OUTPUT_ROOT}")
@@ -75,99 +87,39 @@ endforeach()
 # server and are never loaded by the client updater.
 file(REMOVE_RECURSE "${OUTPUT_ROOT}/modules/game_paperdolls/server")
 
-# Publish each Windows architecture separately. The root Crystal.exe remains
-# an x64 compatibility alias for installed clients that do not report their arch.
-foreach(WINDOWS_ARCH IN ITEMS x86 x64)
-  set(WINDOWS_EXECUTABLE "Cliente${WINDOWS_ARCH}.exe")
-  set(SAVED_BINARY "${RELEASE_STAGING}/windows/${WINDOWS_ARCH}/${WINDOWS_EXECUTABLE}")
-  set(DIST_BINARY "${SOURCE_ROOT}/dist/windows-${WINDOWS_ARCH}-release/Cliente${WINDOWS_ARCH}.exe")
-  if(NOT EXISTS "${DIST_BINARY}")
-  if(WINDOWS_ARCH STREQUAL "x86")
-    set(DIST_BINARY "${SOURCE_ROOT}/dist/dist-windows/Clientex86.exe")
-  else()
-    set(DIST_BINARY "${SOURCE_ROOT}/dist/dist-windows/Clientex64.exe")
-    if(NOT EXISTS "${DIST_BINARY}")
-      set(DIST_BINARY "${SOURCE_ROOT}/dist/dist-windows/Crystal.exe")
-    endif()
-    if(NOT EXISTS "${DIST_BINARY}")
-      set(DIST_BINARY "${SOURCE_ROOT}/dist/CrystalClient/Crystal.exe")
-    endif()
-  endif()
-  endif()
-  set(WINDOWS_UPDATER_BINARY "")
-  if(DEFINED BINARY_FILE AND DEFINED BINARY_PLATFORM AND
-     BINARY_PLATFORM STREQUAL "windows" AND IS_PUBLISHABLE_BUILD AND
-     BINARY_ARCH STREQUAL WINDOWS_ARCH)
-    set(WINDOWS_UPDATER_BINARY "${BINARY_FILE}")
-  elseif(EXISTS "${SAVED_BINARY}")
-    set(WINDOWS_UPDATER_BINARY "${SAVED_BINARY}")
-  elseif(WINDOWS_ARCH STREQUAL "x64" AND EXISTS "${RELEASE_STAGING}/Crystal.exe")
-    set(WINDOWS_UPDATER_BINARY "${RELEASE_STAGING}/Crystal.exe")
-  elseif(EXISTS "${DIST_BINARY}")
-    set(WINDOWS_UPDATER_BINARY "${DIST_BINARY}")
-  endif()
-  if(WINDOWS_UPDATER_BINARY STREQUAL "")
-    continue()
-  endif()
-  if(NOT EXISTS "${WINDOWS_UPDATER_BINARY}")
-    message(FATAL_ERROR "Windows ${WINDOWS_ARCH} updater binary is missing: ${WINDOWS_UPDATER_BINARY}")
-  endif()
+# Publish only the platform/architecture that successfully built Release.
+# Debug and resource-only synchronization never replace native packages.
+if(IS_PUBLISHABLE_BUILD AND DEFINED BINARY_PLATFORM AND
+   BINARY_PLATFORM STREQUAL "windows")
+  set(WINDOWS_EXECUTABLE "Crystal${BINARY_ARCH}.exe")
+  set(SAVED_BINARY "${RELEASE_STAGING}/windows/${BINARY_ARCH}/${WINDOWS_EXECUTABLE}")
   get_filename_component(SAVED_DIRECTORY "${SAVED_BINARY}" DIRECTORY)
   file(MAKE_DIRECTORY "${SAVED_DIRECTORY}")
-  if(NOT WINDOWS_UPDATER_BINARY STREQUAL SAVED_BINARY)
-    file(COPY_FILE "${WINDOWS_UPDATER_BINARY}" "${SAVED_BINARY}" ONLY_IF_DIFFERENT)
+  file(COPY_FILE "${BINARY_FILE}" "${SAVED_BINARY}" ONLY_IF_DIFFERENT)
+  file(COPY_FILE "${SAVED_BINARY}" "${OUTPUT_ROOT}/${WINDOWS_EXECUTABLE}" ONLY_IF_DIFFERENT)
+elseif(IS_PUBLISHABLE_BUILD AND DEFINED BINARY_PLATFORM AND
+       BINARY_PLATFORM STREQUAL "linux")
+  if(NOT DEFINED BINARY_FILE OR NOT EXISTS "${BINARY_FILE}")
+    message(FATAL_ERROR "Linux publication requires an existing BINARY_FILE")
   endif()
-  set(PUBLISH_DIRECTORY "${OUTPUT_ROOT}/binaries/windows/${WINDOWS_ARCH}")
-  file(MAKE_DIRECTORY "${PUBLISH_DIRECTORY}")
-  file(COPY_FILE "${SAVED_BINARY}" "${PUBLISH_DIRECTORY}/${WINDOWS_EXECUTABLE}")
-  if(WINDOWS_ARCH STREQUAL "x64")
-    file(COPY_FILE "${SAVED_BINARY}" "${RELEASE_STAGING}/Crystal.exe" ONLY_IF_DIFFERENT)
-    file(COPY_FILE "${SAVED_BINARY}" "${OUTPUT_ROOT}/Crystal.exe")
+  if(BINARY_ARCH STREQUAL "x64")
+    set(LINUX_EXECUTABLE "Crystalx64")
+  else()
+    set(LINUX_EXECUTABLE "Crystalx86")
   endif()
-endforeach()
-
-# Publish the extensionless Linux ELF as Crystal. Keeping a distinct filename
-# allows one files/ payload to serve Windows and Linux without collisions.
-set(LINUX_RELEASE_BINARY "${SOURCE_ROOT}/dist/dist-linux/Crystal")
-set(LINUX_UPDATER_BINARY "")
-if(DEFINED BINARY_FILE AND DEFINED BINARY_PLATFORM AND
-   BINARY_PLATFORM STREQUAL "linux" AND IS_PUBLISHABLE_BUILD)
-  set(LINUX_UPDATER_BINARY "${BINARY_FILE}")
-elseif(EXISTS "${RELEASE_STAGING}/Crystal")
-  set(LINUX_UPDATER_BINARY "${RELEASE_STAGING}/Crystal")
-elseif(EXISTS "${LINUX_RELEASE_BINARY}")
-  set(LINUX_UPDATER_BINARY "${LINUX_RELEASE_BINARY}")
-endif()
-
-if(NOT LINUX_UPDATER_BINARY STREQUAL "" AND NOT LINUX_UPDATER_BINARY STREQUAL "${RELEASE_STAGING}/Crystal")
-  file(COPY_FILE "${LINUX_UPDATER_BINARY}" "${RELEASE_STAGING}/Crystal" ONLY_IF_DIFFERENT)
-endif()
-if(NOT LINUX_UPDATER_BINARY STREQUAL "")
-  if(NOT EXISTS "${LINUX_UPDATER_BINARY}")
-    message(FATAL_ERROR "Linux Release updater binary is missing: ${LINUX_UPDATER_BINARY}")
-  endif()
-
-  execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-      "${LINUX_UPDATER_BINARY}"
-      "${OUTPUT_ROOT}/Crystal"
-    RESULT_VARIABLE LINUX_BINARY_COPY_RESULT
-  )
-  if(NOT LINUX_BINARY_COPY_RESULT EQUAL 0)
-    message(FATAL_ERROR "Unable to publish the Linux Crystal binary to the updater payload")
+  set(SAVED_BINARY "${RELEASE_STAGING}/linux/${BINARY_ARCH}/${LINUX_EXECUTABLE}")
+  get_filename_component(SAVED_DIRECTORY "${SAVED_BINARY}" DIRECTORY)
+  file(MAKE_DIRECTORY "${SAVED_DIRECTORY}")
+  file(COPY_FILE "${BINARY_FILE}" "${SAVED_BINARY}" ONLY_IF_DIFFERENT)
+  file(COPY_FILE "${SAVED_BINARY}" "${OUTPUT_ROOT}/${LINUX_EXECUTABLE}" ONLY_IF_DIFFERENT)
+  # The historical unqualified Linux executable was x64; its snapshot was saved above.
+  if(BINARY_ARCH STREQUAL "x64")
+    file(REMOVE "${OUTPUT_ROOT}/Crystal")
   endif()
 endif()
 
-# Preserve the last successfully assembled Android release in the common VPS
-# payload. The Gradle release build refreshes this staging directory.
-set(ANDROID_UPDATER_STAGING "${SOURCE_ROOT}/android-output/updater")
-if(EXISTS "${ANDROID_UPDATER_STAGING}/Crystal.apk" AND
-   EXISTS "${ANDROID_UPDATER_STAGING}/android-version.json")
-  file(COPY
-    "${ANDROID_UPDATER_STAGING}/Crystal.apk"
-    "${ANDROID_UPDATER_STAGING}/android-version.json"
-    DESTINATION "${OUTPUT_ROOT}")
-endif()
+# Android's Gradle release task already publishes Crystal.apk and its metadata
+# directly into files/. Desktop/resource synchronization preserves them in place.
 
 file(GLOB_RECURSE COPIED_FILES LIST_DIRECTORIES FALSE "${OUTPUT_ROOT}/*")
 list(LENGTH COPIED_FILES COPIED_FILE_COUNT)

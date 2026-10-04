@@ -52,10 +52,26 @@ Veja `docs/AMBIENTE-WINDOWS.md` para uma maquina nova e `docs/INSTALADOR.md` par
 
 O pacote inicial contem corelib, gamelib, modulelib, startup, game_shaders, client_locales, client_styles, client_background, client_topmenu, updater, fontes, estilos, imagens da interface e certificados. O primeiro uso precisa de internet para baixar dados do jogo, sprites, sons, mods e demais modulos. Cancelar o primeiro download fecha o cliente; abrir novamente tenta a atualizacao.
 
-O build publica em `files/binaries/windows/x86/Clientex86.exe` e `files/binaries/windows/x64/Clientex64.exe`; `files/Crystal.exe` permanece como compatibilidade para clientes x64 antigos. Os recursos completos permanecem tambem na raiz de desenvolvimento. Nao removemos recursos compartilhados de `files/`, pois clientes existentes ainda podem precisar atualiza-los.
+O build publica em `files/Crystalx86.exe` e `files/Crystalx64.exe`; A API usa Crystalx64.exe para clientes Windows antigos que nao informam arquitetura; nenhum Crystal.exe duplicado e gerado. Os recursos completos permanecem tambem na raiz de desenvolvimento. Nao removemos recursos compartilhados de `files/`, pois clientes existentes ainda podem precisar atualiza-los.
 
 Execute os builds em sequencia porque `files/` e compartilhada. Antes de distribuir x86, publique manualmente a API atualizada `tools/api/updater.php` e o payload completo de `files/`. Nada e enviado ao servidor automaticamente. Os caminhos finais data/things/<version>/ e data/sounds/<version>/ e as regras estritas de hashes permanecem iguais.
 
-## Linux e Android
+## Linux
 
-A padronizacao deste passo abrange Windows. Os presets e destinos Linux/Android existentes continuam disponiveis. Linux continua com `dist/dist-linux/` e pacotes em `dist/linux-packages/` ate a organizacao especifica dessas plataformas.
+Presets: linux-x64-release, linux-x64-debug, linux-x64-portable-release e linux-x64-portable-debug. Mesmos caminhos por preset: build/, dist/, dist/scripts/ e dist/instalador/.
+
+```bash
+cmake --preset linux-x64-release
+cmake --build build/linux-x64-release -j 10
+bash dist/scripts/linux-x64-release/empacotar.sh --version 1.0.0
+```
+
+O ultimo comando gera TAR.GZ e DEB em dist/instalador/linux-x64-release/. O Linux Release atualiza apenas files/Crystalx86 ou files/Crystalx64, conforme a arquitetura. Debug preserva o Release; os binarios Windows/Android permanecem intactos. Consulte docs/INSTALADOR-LINUX.md para as variantes portateis e dependencias em outra maquina. O binario original fica em build/<preset>/bin e somente a copia em dist/<preset>/ tem os simbolos de depuracao retirados.
+
+## Android
+
+Os presets Android existentes continuam disponiveis; sua organizacao especifica sera tratada separadamente.
+
+Cada build Release atualiza somente o binario de sua plataforma e arquitetura em files/. Os demais binarios e metadados ficam no lugar, sem recopia ou alteracao de data. Debug atualiza os recursos e preserva todos os binarios Release. Android publica seu APK e metadados diretamente pelo Gradle.
+
+Linux nativo inclui linux-x86-release/debug e linux-x64-release/debug. x86 usa GCC 13 multilib (-m32) e vcpkg x86-linux, host x86-linux. Docker portatil segue x64. Payloads Linux em files/Crystalx86 e files/Crystalx64; API seleciona pela arquitetura e nunca oferece fallback x64 a clientes x86. Executavel instalado continua Crystal.

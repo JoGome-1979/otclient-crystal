@@ -69,13 +69,14 @@ if(WIN32)
     "-DBINARY_PLATFORM=windows"
     "-DBINARY_ARCH=${CRYSTAL_WINDOWS_ARCH}"
   )
-elseif(UNIX AND NOT APPLE AND NOT ANDROID)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID)
   # Linux Release publishes its extensionless ELF binary beside the Windows
   # and Android artifacts in the shared updater payload.
   list(APPEND UPDATER_BINARY_ARGUMENTS
     "-DBINARY_FILE=$<TARGET_FILE:${PROJECT_NAME}>"
     "-DBUILD_CONFIG=$<CONFIG>"
     "-DBINARY_PLATFORM=linux"
+    "-DBINARY_ARCH=${CRYSTAL_LINUX_ARCH}"
   )
 endif()
 
@@ -1221,29 +1222,24 @@ if (WIN32)
   )
   add_dependencies(stage_windows_distribution ${PROJECT_NAME})
   add_dependencies(sync_updater_files stage_windows_distribution)
-elseif(UNIX AND NOT APPLE AND NOT ANDROID)
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CRYSTAL_LINUX_DIST_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-  else()
-    set(CRYSTAL_LINUX_DIST_DIRECTORY "${CMAKE_SOURCE_DIR}/dist/dist-linux")
-  endif()
-  set_target_properties(${PROJECT_NAME}
-          PROPERTIES
-          OUTPUT_NAME "Crystal"
-          RUNTIME_OUTPUT_DIRECTORY "${CRYSTAL_LINUX_DIST_DIRECTORY}"
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID)
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    OUTPUT_NAME "Crystal"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<0:>"
   )
-
-  add_custom_command(TARGET ${PROJECT_NAME}
-          POST_BUILD
-          COMMAND ${CMAKE_COMMAND}
-                  "-DSOURCE_ROOT:PATH=${CMAKE_SOURCE_DIR}"
-                  "-DBINARY_FILE:FILEPATH=$<TARGET_FILE:${PROJECT_NAME}>"
-                  "-DPLATFORM=linux"
-                  "-DBUILD_CONFIG=$<CONFIG>"
-                  -P "${CMAKE_SOURCE_DIR}/cmake/StageDesktopDistribution.cmake"
-          COMMENT "Creating minimal Crystal first-run distribution"
-          VERBATIM
+  add_custom_target(stage_linux_distribution ALL
+    COMMAND ${CMAKE_COMMAND}
+      "-DSOURCE_ROOT:PATH=${CMAKE_SOURCE_DIR}"
+      "-DBINARY_ROOT:PATH=${CMAKE_BINARY_DIR}"
+      "-DBINARY_FILE:FILEPATH=$<TARGET_FILE:${PROJECT_NAME}>"
+      "-DBUILD_CONFIG=$<CONFIG>"
+      "-DPRESET=${CRYSTAL_DISTRIBUTION_PRESET}"
+      -P "${CMAKE_SOURCE_DIR}/dist/scripts/linux-x64-release/StageDistribution.cmake"
+    COMMENT "Refreshing minimal ${CRYSTAL_DISTRIBUTION_PRESET} distribution"
+    VERBATIM
   )
+  add_dependencies(stage_linux_distribution ${PROJECT_NAME})
+  add_dependencies(sync_updater_files stage_linux_distribution)
 elseif (TOGGLE_BIN_FOLDER)
   set_target_properties(${PROJECT_NAME}
           PROPERTIES

@@ -81,7 +81,7 @@ local function downloadFiles(url, files, index, retries, doneCallback)
   updaterWindow.downloadProgress:setPercent(0)
   updaterWindow.mainProgress:setPercent(math.floor(100 * index / #files))
 
-  httpOperationId = HTTP.download(url .. file, file,
+  httpOperationId = HTTP.download(entry[3] or (url .. file), file,
     function(file, checksum, err)
       if not err and checksum ~= file_checksum then
         err = "Invalid checksum of: " .. file .. ".\nShould be " .. file_checksum .. ", is: " .. checksum
@@ -145,11 +145,24 @@ local function updateFiles(data, keepCurrentFiles, skipAndroidPackage)
     end
   end
 
+  -- Protocol 2 may route versioned assets to a pinned GitHub commit.
+  -- Binary downloads keep the API's VPS base URL.
+  if data.fileUrls ~= nil and type(data.fileUrls) ~= 'table' then
+    return Updater.error("Invalid updater file URLs")
+  end
+  local fileUrls = data.fileUrls or {}
+  for file, downloadUrl in pairs(fileUrls) do
+    if not data.files[file] or type(downloadUrl) ~= 'string' or
+       not downloadUrl:match('^https://') then
+      return Updater.error("Invalid updater download URL")
+    end
+  end
+
   -- update files
   for file, checksum in pairs(data.files) do
     table.insert(finalFiles, file)
     if not localFiles[file] or localFiles[file] ~= checksum then
-      table.insert(toUpdate, { file, checksum })
+      table.insert(toUpdate, { file, checksum, fileUrls[file] })
       table.insert(toUpdateFiles, file)
       newFiles = true
     end
@@ -279,6 +292,7 @@ function Updater.check(args)
   end
 
   httpOperationId = HTTP.postJSON(Services.updater, {
+    updaterProtocol = 2,
     version = g_app.getBuildRevision(),
     build = g_app.getVersion(),
     os = g_app.getOs(),
