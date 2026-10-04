@@ -105,7 +105,7 @@ UIWidget
       margin-top: 7
       height: 22
 
-    OptionCheckBox
+      OptionCheckBox
         id: moveStack
         !text: tr('Move stacks directly')
 

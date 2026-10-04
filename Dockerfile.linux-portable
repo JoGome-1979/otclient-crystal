@@ -2,15 +2,29 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 ARG VCPKG_REF
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates software-properties-common curl git build-essential \
+    ca-certificates gnupg curl git build-essential \
     autoconf autoconf-archive automake libtool libtool-bin pkg-config \
-    ninja-build python3 python3-pip zip unzip tar rsync nasm bison flex \
+    ninja-build python3 python3-pip python3-venv zip unzip tar rsync nasm bison flex \
     libx11-dev libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev \
     libgl1-mesa-dev libglu1-mesa-dev libpulse-dev libltdl-dev \
-    && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+    && install -d -m 0755 /etc/apt/keyrings \
+    && curl --fail --show-error --location --retry 3 \
+       'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC8EC952E2A0E1FBDC5090F6A2C277A0A352154E5' \
+       -o /tmp/ubuntu-toolchain.asc \
+    && test "$(gpg --batch --show-keys --with-colons /tmp/ubuntu-toolchain.asc | awk -F: '$1 == "fpr" {print $10; exit}')" \
+       = 'C8EC952E2A0E1FBDC5090F6A2C277A0A352154E5' \
+    && gpg --batch --yes --dearmor -o /etc/apt/keyrings/ubuntu-toolchain.gpg /tmp/ubuntu-toolchain.asc \
+    && chmod 0644 /etc/apt/keyrings/ubuntu-toolchain.gpg \
+    && echo 'deb [signed-by=/etc/apt/keyrings/ubuntu-toolchain.gpg] https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu jammy main' \
+       > /etc/apt/sources.list.d/ubuntu-toolchain.list \
+    && rm /tmp/ubuntu-toolchain.asc \
     && apt-get update && apt-get install -y --no-install-recommends gcc-13 g++-13 \
-    && pip3 install --no-cache-dir cmake==3.31.8 \
-    && rm -rf /var/lib/apt/lists/*
+    && pip3 install --no-cache-dir cmake==3.31.10 \
+    && python3 -I -m venv --symlinks /tmp/crystal-python-check \
+    && /tmp/crystal-python-check/bin/python -m pip --version \
+    && cmake --version && ninja --version && gcc-13 --version && g++-13 --version \
+    && pkg-config --exists x11 xrandr xi xcursor xinerama gl glu libpulse \
+    && rm -rf /tmp/crystal-python-check /var/lib/apt/lists/*
 RUN test -n "$VCPKG_REF" && git clone https://github.com/microsoft/vcpkg.git /opt/vcpkg \
     && git -C /opt/vcpkg checkout "$VCPKG_REF" && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 ENV VCPKG_ROOT=/opt/vcpkg

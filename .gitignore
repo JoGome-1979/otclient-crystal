@@ -343,6 +343,7 @@ CMakeUserPresets.json
 !/dist/scripts/**/*.iss
 !/dist/scripts/**/*.md
 !/dist/scripts/**/*.sh
+!/dist/scripts/**/*.py
 /files/
 /backups/
 /cache/

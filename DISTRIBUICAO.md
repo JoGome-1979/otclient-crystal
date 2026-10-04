@@ -75,3 +75,13 @@ Os presets Android existentes continuam disponiveis; sua organizacao especifica 
 Cada build Release atualiza somente o binario de sua plataforma e arquitetura em files/. Os demais binarios e metadados ficam no lugar, sem recopia ou alteracao de data. Debug atualiza os recursos e preserva todos os binarios Release. Android publica seu APK e metadados diretamente pelo Gradle.
 
 Linux nativo inclui linux-x86-release/debug e linux-x64-release/debug. x86 usa GCC 13 multilib (-m32) e vcpkg x86-linux, host x86-linux. Docker portatil segue x64. Payloads Linux em files/Crystalx86 e files/Crystalx64; API seleciona pela arquitetura e nunca oferece fallback x64 a clientes x86. Executavel instalado continua Crystal.
+
+Cada build com sincronizacao do updater, incluindo Debug, gera files/data.zip, files/modules.zip e files/mods.zip usando o ZIP do proprio CMake. As pastas correspondentes permanecem para clientes antigos. init.lua e binarios ficam fora dos ZIPs. A publicacao na VPS continua manual.
+
+## Cliente Web
+
+Presets: `web-release` e `web-debug`, executados no WSL/Linux a partir da raiz.
+SDK Emscripten 4.0.23; ambiente reproduzivel e comandos em `docs/CLIENTE-WEB.md`.
+Build/cache em `build/<preset>/`, pagina e arquivos gerados em `dist/<preset>/`.
+Teste local: `python3 dist/scripts/web-release/servir.py --preset <preset>`.
+A compilacao web nao substitui binarios ou recursos em `files/`.

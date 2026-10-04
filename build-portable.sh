@@ -18,7 +18,7 @@ cmake -S /workspace/src -B /workspace/native -G Ninja \
   -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 \
   -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake \
   -DVCPKG_TARGET_TRIPLET=x64-linux -DVCPKG_HOST_TRIPLET=x64-linux \
-  -DVCPKG_INSTALLED_DIR=/workspace/vcpkg_installed -DVCPKG_BUILD_TYPE="${build_type,,}" \
+  -DVCPKG_INSTALLED_DIR=/workspace/native/vcpkg_installed -DVCPKG_BUILD_TYPE="${build_type,,}" \
   -DCRYSTAL_DISTRIBUTION_PRESET="linux-x64-portable-${build_type,,}" \
   -DOPTIONS_ENABLE_IPO=OFF -DSPEED_UP_BUILD_UNITY=OFF \
   -DTOGGLE_DIRECTX=OFF -DOTCLIENT_BUILD_TESTS=OFF \

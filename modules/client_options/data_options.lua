@@ -234,7 +234,7 @@ return {
         end
     },
     musicSoundVolume                  = {
-        value = 100,
+        value = 50,
         action = function(value, options, controller, panels, extraWidgets)
             if g_sounds then
                 g_sounds.getChannel(SoundChannels.Music):setGain(value / 100)
@@ -418,7 +418,7 @@ return {
         end
     },
     shadowFloorIntensity              = {
-        value = 30,
+        value = 25,
         action = function(value, options, controller, panels, extraWidgets)
             panels.graphicsEffectsPanel:recursiveGetChildById('shadowFloorIntensity'):setText(string.format(
                 'Shadow floor Intensity: %s%%', value))

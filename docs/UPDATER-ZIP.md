@@ -1,10 +1,10 @@
-# Teste manual do updater com ZIP
+# Updater com ZIP
 
 O PHP do projeto fica em `tools/api/updater.php` e é publicado como `/var/www/crystalgames/api/updater.php`. O cliente usa `modules/updater/updater.lua`. Os binários continuam separados por sistema e arquitetura.
 
 Para testar, feche e abra novamente o cliente instalado. Seu Lua do updater foi atualizado para negociar ZIPs com a API; o executável não foi trocado e não houve compilação.
 
-1. Compacte as pastas atuais do mesmo pacote: `data.zip`, `modules.zip` e `mods.zip`. Use ZIP comum, sem senha. `modules.zip` deve conter o Lua atualizado em `modules/updater/updater.lua`.
+1. Execute o build normalmente a partir da raiz. Ao concluir, a sincronização gera `files/data.zip`, `files/modules.zip` e `files/mods.zip`, cada um contendo sua pasta correspondente. Isso vale para Release e Debug, em todas as plataformas com sincronização do updater. Também é possível compactar as pastas manualmente para um teste, usando ZIP comum, sem senha.
 2. Envie os ZIPs para `/var/www/crystalgames/api/files/`. Mantenha inicialmente as pastas descompactadas nesse diretório: clientes antigos continuam precisando delas até receberem o updater novo.
 3. Deixe `init.lua`, `Crystalx86.exe`, `Crystalx64.exe`, executáveis Linux e APK fora desses três ZIPs. Eles seguem o mecanismo atual de seleção por plataforma/arquitetura.
 4. Abra o cliente. Havendo conteúdo diferente, o updater baixa um ZIP por grupo, verifica CRC32 e SHA-256, extrai para a pasta de instalação e reinicia uma vez, após concluir todos os grupos.
@@ -28,7 +28,7 @@ O ZIP escolhido é a fonte do manifesto para aquele grupo. Portanto, novos clien
 
 ## Limites desta etapa
 
-Os ZIPs não são gerados automaticamente pela compilação nesta etapa. A geração/publicação automática fica para a próxima adaptação. O processo atual que reconstrói `files/` pode remover ZIPs inseridos manualmente ali: compacte depois do build. Não há desativação do Defender nem alteração das opções `strictManifestSha256` e `allowRawFallbackHashMismatch`.
+Os ZIPs são recriados após a sincronização dos recursos em cada build, sem precisar instalar um compactador. As pastas descompactadas continuam em `files/` para clientes antigos. Debug atualiza recursos e ZIPs, preservando os binários Release. O envio à VPS continua manual. ZIPs preparados manualmente em `files/` serão substituídos pelo conteúdo atual do projeto no próximo build. Não há desativação do Defender nem alteração das opções `strictManifestSha256` e `allowRawFallbackHashMismatch`.
 
 A extração usa as funções nativas já existentes, inclusive o suporte ZIP sem libarchive no Android. Os downloads são mantidos em memória pelo mecanismo atual; para pacotes muito grandes, teste o consumo de memória principalmente no cliente x86. A extração nativa pode demorar com muitos arquivos; a tela mostra a etapa antes de iniciá-la.
 

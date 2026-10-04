@@ -48,3 +48,5 @@ Reference: `docs/client-assets-auto-install.md`
 - Linux usa linux-x64-release/debug e linux-x64-portable-release/debug. Mesmos caminhos por preset: build/, dist/, dist/scripts/, dist/instalador/. O usuario executa configure/build. Scripts .sh de empacotamento devem acompanhar o Git. files/Crystalx86 e files/Crystalx64 so sao atualizados pelo build Linux Release correspondente; binarios Windows/Android permanecem intactos.
 
 Linux nativo inclui linux-x86-release/debug e linux-x64-release/debug. x86 usa GCC 13 multilib (-m32) e vcpkg x86-linux, host x86-linux. Docker portatil segue x64. Payloads Linux em files/Crystalx86 e files/Crystalx64; API seleciona pela arquitetura e nunca oferece fallback x64 a clientes x86. Executavel instalado continua Crystal.
+
+Web: presets web-release/web-debug no WSL/Linux, SDK Emscripten 4.0.23. Configure/build do cliente sao executados pelo usuario. Leia docs/CLIENTE-WEB.md; fontes/cache em build/<preset>, artefatos web em dist/<preset>, ferramentas em dist/scripts/web-release. Build web nao publica nem altera files/ ou a VPS. Validacoes de fixtures isoladas do SDK nao sao builds do cliente.

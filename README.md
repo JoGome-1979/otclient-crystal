@@ -327,7 +327,7 @@ Recursos e créditos herdados da base OTClient. Os exemplos e materiais externos
 - Binários selecionados por sistema e arquitetura: Windows x86/x64, Linux x86/x64 e pacote Android quando disponível.
 - Suporte a `data.zip`, `modules.zip` e `mods.zip`, com CRC32 e SHA-256, extração nas pastas padrão e reinício automático.
 - A API compara as datas no servidor: ZIP atualizado prevalece; uma pasta mais recente mantém a atualização por arquivo.
-- Leia o [guia de teste dos ZIPs](docs/UPDATER-ZIP.md) e a [organização da distribuição](DISTRIBUICAO.md). Os ZIPs de recursos ainda são preparados manualmente.
+- Leia o [guia de teste dos ZIPs](docs/UPDATER-ZIP.md) e a [organização da distribuição](DISTRIBUICAO.md). Cada build gera automaticamente `files/data.zip`, `files/modules.zip` e `files/mods.zip`, incluindo Debug e todas as plataformas.
 </details>
 
 <details>

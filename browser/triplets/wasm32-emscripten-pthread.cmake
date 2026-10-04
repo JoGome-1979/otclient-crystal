@@ -7,12 +7,12 @@ set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "$ENV{EMSDK}/upstream/emscripten/cmake/Module
 
 # Force pthread support with atomics and bulk-memory for all packages
 # These flags are required for shared memory support in WebAssembly
-set(VCPKG_C_FLAGS "-pthread -matomics -mbulk-memory")
-set(VCPKG_CXX_FLAGS "-pthread -matomics -mbulk-memory")
-set(VCPKG_LINKER_FLAGS "-pthread -matomics -mbulk-memory")
+set(VCPKG_C_FLAGS "-pthread -matomics -mbulk-memory -fwasm-exceptions")
+set(VCPKG_CXX_FLAGS "-pthread -matomics -mbulk-memory -fexceptions -fwasm-exceptions")
+set(VCPKG_LINKER_FLAGS "-pthread -matomics -mbulk-memory -fwasm-exceptions -sSUPPORT_LONGJMP=wasm")
 
 # Also set as CMAKE_*_FLAGS to ensure they're applied universally
 set(VCPKG_CMAKE_CONFIGURE_OPTIONS 
-    "-DCMAKE_C_FLAGS=-pthread -matomics -mbulk-memory"
-    "-DCMAKE_CXX_FLAGS=-pthread -matomics -mbulk-memory"
+    "-DCMAKE_C_FLAGS=${VCPKG_C_FLAGS}"
+    "-DCMAKE_CXX_FLAGS=${VCPKG_CXX_FLAGS}"
 )

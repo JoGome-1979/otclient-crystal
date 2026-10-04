@@ -80,7 +80,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID)
   )
 endif()
 
-if(NOT ANDROID)
+if(NOT ANDROID AND NOT WASM)
 add_custom_target(sync_updater_files ALL
   COMMAND ${CMAKE_COMMAND}
     "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
@@ -376,7 +376,8 @@ else()
     endif()
     find_package(LuaJIT REQUIRED)
   else()
-    set(LUA_LIBRARY ${LUA_LIBRARY} ${CMAKE_SOURCE_DIR}/browser/include/lua51/liblua.a)
+    include("${CMAKE_SOURCE_DIR}/cmake/WebLua.cmake")
+    set(LUA_LIBRARY crystal_web_lua)
     set(BROWSER_INCLUDE_DIR ${BROWSER_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/browser/include)
   endif()
 endif()
@@ -919,10 +920,14 @@ elseif(WASM)
 
   set(_WASM_LONGJMP_MODE "emscripten")
   set(_WASM_EXPORTED_FUNCTIONS "_main,_paste_return")
-  set(_WASM_CXX_FLAGS "-O3 -ffast-math -frtti -pthread -fexceptions")
+  set(_WASM_CXX_FLAGS "-ffast-math -frtti -pthread -fexceptions")
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND _WASM_CXX_FLAGS " -O0")
+  else()
+    string(APPEND _WASM_CXX_FLAGS " -O3")
+  endif()
   if(WASM_USE_WASM_EXCEPTIONS)
     set(_WASM_LONGJMP_MODE "wasm")
-    set(_WASM_EXPORTED_FUNCTIONS "${_WASM_EXPORTED_FUNCTIONS},_emscripten_longjmp")
     string(APPEND _WASM_CXX_FLAGS " -fwasm-exceptions")
   endif()
 
@@ -1029,18 +1034,14 @@ elseif(WASM)
           # ("ArrayBuffer value must not be resizable"). Use a fixed heap.
           -sALLOW_MEMORY_GROWTH=0
           -sINITIAL_MEMORY=1073741824
-          --preload-file=../otclientrc.lua@otclientrc.lua
-          --preload-file=../init.lua@init.lua
-          --preload-file=../data@data
-          --preload-file=../mods@mods
-          --preload-file=../modules@modules
-          --shell-file=../browser/shell.html
+          "--preload-file=${CMAKE_SOURCE_DIR}/otclientrc.lua@otclientrc.lua"
+          "--preload-file=${CMAKE_SOURCE_DIR}/init.lua@init.lua"
+          "--preload-file=${CMAKE_SOURCE_DIR}/data@data"
+          "--preload-file=${CMAKE_SOURCE_DIR}/mods@mods"
+          "--preload-file=${CMAKE_SOURCE_DIR}/modules@modules"
+          "--shell-file=${CMAKE_SOURCE_DIR}/browser/shell.html"
           --use-preload-cache
   )
-
-  if(WASM_USE_WASM_EXCEPTIONS)
-    list(APPEND WASM_LINK_OPTIONS "-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['emscripten_longjmp']")
-  endif()
 
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND WASM_LINK_OPTIONS -sASSERTIONS=1)
@@ -1049,7 +1050,13 @@ elseif(WASM)
   target_link_options(${PROJECT_NAME} PRIVATE ${WASM_LINK_OPTIONS})
   string(REPLACE ";" " " _WASM_LINK_LOG "${WASM_LINK_OPTIONS}")
   message(STATUS "WASM link options: ${_WASM_LINK_LOG}")
-  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+  set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
+  # Lua/UI changes must also rebuild the embedded browser resource bundle.
+  file(GLOB_RECURSE web_resources CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/data/*" "${CMAKE_SOURCE_DIR}/modules/*" "${CMAKE_SOURCE_DIR}/mods/*")
+  set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY LINK_DEPENDS
+    ${web_resources} "${CMAKE_SOURCE_DIR}/init.lua" "${CMAKE_SOURCE_DIR}/otclientrc.lua"
+    "${CMAKE_SOURCE_DIR}/browser/shell.html")
   set(VCPKG_TARGET_TRIPLET "wasm32-emscripten" CACHE STRING "")
 
 else() # Linux
@@ -1240,6 +1247,21 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID)
   )
   add_dependencies(stage_linux_distribution ${PROJECT_NAME})
   add_dependencies(sync_updater_files stage_linux_distribution)
+elseif(WASM)
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    OUTPUT_NAME "index"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_custom_target(stage_web_distribution ALL
+    COMMAND ${CMAKE_COMMAND}
+      "-DSOURCE_ROOT:PATH=${CMAKE_SOURCE_DIR}"
+      "-DBINARY_ROOT:PATH=${CMAKE_BINARY_DIR}"
+      "-DPRESET=${CRYSTAL_DISTRIBUTION_PRESET}"
+      -P "${CMAKE_SOURCE_DIR}/dist/scripts/web-release/StageDistribution.cmake"
+    COMMENT "Refreshing ${CRYSTAL_DISTRIBUTION_PRESET} browser distribution"
+    VERBATIM
+  )
+  add_dependencies(stage_web_distribution ${PROJECT_NAME})
 elseif (TOGGLE_BIN_FOLDER)
   set_target_properties(${PROJECT_NAME}
           PROPERTIES

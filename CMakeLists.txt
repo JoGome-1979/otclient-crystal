@@ -14,6 +14,11 @@ elseif(CRYSTAL_BUILD_PORTABLE)
   return()
 endif()
 
+# Validate the pinned browser SDK before dependency installation starts.
+if(WASM)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/WebEnvironment.cmake")
+endif()
+
 # Discover the host's vcpkg before project() loads the compiler/toolchain.
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   if("$ENV{VCPKG_ROOT}" STREQUAL "")

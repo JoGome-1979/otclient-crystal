@@ -328,6 +328,55 @@
         "DEBUG_LOG": "ON",
         "TOGGLE_PRE_COMPILED_HEADER": "OFF"
       }
+    },
+    {
+      "name": "web-release",
+      "displayName": "web-release",
+      "description": "Crystal no navegador (WebAssembly), otimizado",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "environment": {
+        "CC": null,
+        "CXX": null
+      },
+      "cacheVariables": {
+        "WASM": "ON",
+        "CMAKE_SYSTEM_NAME": "Emscripten",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/WebToolchain.cmake",
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "wasm32-emscripten-pthread",
+        "VCPKG_HOST_TRIPLET": "x64-linux",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/browser/triplets",
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/overlay-ports",
+        "VCPKG_MANIFEST_DIR": "${sourceDir}/browser",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/build/${presetName}/vcpkg_installed",
+        "VCPKG_BUILD_TYPE": "release",
+        "CANARY_USE_SHARED_VCPKG_INSTALLED": "OFF",
+        "OPTIONS_ENABLE_IPO": "OFF",
+        "OPTIONS_ENABLE_CCACHE": "OFF",
+        "OPTIONS_ENABLE_SCCACHE": "OFF",
+        "ENABLE_DISCORD_RPC": "OFF",
+        "TOGGLE_DIRECTX": "OFF",
+        "TOGGLE_PRE_COMPILED_HEADER": "OFF",
+        "WASM_USE_WASM_EXCEPTIONS": "ON",
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      }
+    },
+    {
+      "name": "web-debug",
+      "displayName": "web-debug",
+      "description": "Crystal no navegador (WebAssembly), depuracao",
+      "inherits": "web-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_BUILD_TYPE": "debug",
+        "DEBUG_LOG": "ON",
+        "CRYSTAL_DISTRIBUTION_PRESET": "${presetName}"
+      }
     }
   ],
   "buildPresets": [
@@ -418,6 +467,14 @@
     {
       "name": "linux-x86-debug",
       "configurePreset": "linux-x86-debug"
+    },
+    {
+      "name": "web-release",
+      "configurePreset": "web-release"
+    },
+    {
+      "name": "web-debug",
+      "configurePreset": "web-debug"
     }
   ],
   "testPresets": [

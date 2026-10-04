@@ -121,6 +121,24 @@ endif()
 # Android's Gradle release task already publishes Crystal.apk and its metadata
 # directly into files/. Desktop/resource synchronization preserves them in place.
 
+# Package the synchronized resource folders for every successful build, including
+# Debug. Keep loose resources for clients that do not negotiate ZIP updates.
+# CMake provides ZIP support on all build hosts without an external archiver.
+foreach(RESOURCE_GROUP IN ITEMS data modules mods)
+  set(ARCHIVE_TEMP "${OUTPUT_ROOT}/${RESOURCE_GROUP}.zip.tmp")
+  execute_process(
+    COMMAND "${CMAKE_COMMAND}" -E tar cf "${ARCHIVE_TEMP}" --format=zip -- "${RESOURCE_GROUP}"
+    WORKING_DIRECTORY "${OUTPUT_ROOT}"
+    RESULT_VARIABLE ARCHIVE_RESULT
+    ERROR_VARIABLE ARCHIVE_ERROR)
+  if(NOT ARCHIVE_RESULT EQUAL 0)
+    file(REMOVE "${ARCHIVE_TEMP}")
+    message(FATAL_ERROR "Failed to create ${RESOURCE_GROUP}.zip: ${ARCHIVE_ERROR}")
+  endif()
+  file(RENAME "${ARCHIVE_TEMP}" "${OUTPUT_ROOT}/${RESOURCE_GROUP}.zip")
+  message(STATUS "Updater archive generated: ${OUTPUT_ROOT}/${RESOURCE_GROUP}.zip")
+endforeach()
+
 file(GLOB_RECURSE COPIED_FILES LIST_DIRECTORIES FALSE "${OUTPUT_ROOT}/*")
 list(LENGTH COPIED_FILES COPIED_FILE_COUNT)
 message(STATUS "Updater payload synchronized: ${OUTPUT_ROOT} (${COPIED_FILE_COUNT} files)")
