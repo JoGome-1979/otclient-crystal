@@ -85,6 +85,135 @@ function clientFamily($os, $platform) {
     return null;
 }
 
+// ZIPs are optional transport packages. Runtime paths stay data/, modules/, mods/.
+function updaterSourceRevision($root, $roots) {
+    $stats = array();
+    foreach ($roots as $name) {
+        $start = $root . DIRECTORY_SEPARATOR . $name;
+        if (is_file($start)) { $entries = array(new SplFileInfo($start)); }
+        elseif (is_dir($start)) {
+            $stats[$name] = array(filemtime($start), 0);
+            $entries = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($start, FilesystemIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
+        } else { continue; }
+        foreach ($entries as $entry) {
+            if ($entry->isLink()) { continue; }
+            $stats[substr($entry->getPathname(), strlen($root) + 1)] = array(
+                $entry->getMTime(), $entry->isFile() ? $entry->getSize() : 0
+            );
+        }
+    }
+    ksort($stats);
+    return hash('sha256', json_encode($stats));
+}
+
+function newestUpdaterSourceTime($directory) {
+    if (!is_dir($directory)) { return 0; }
+    $latest = filemtime($directory);
+    $entries = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+    foreach ($entries as $entry) {
+        if (!$entry->isLink()) { $latest = max($latest, $entry->getMTime()); }
+    }
+    return $latest;
+}
+
+function updaterZipManifest($absolute, $group) {
+    if (!class_exists('ZipArchive')) {
+        fail('PHP zip extension is required for updater ZIP packages', 500);
+    }
+    // ZIP entry CRCs are read from the directory; no extraction on the server.
+    $signature = hash('sha256', __FILE__ . hash_file('sha256', __FILE__) .
+        $absolute . ':' . filemtime($absolute) . ':' . filesize($absolute));
+    $cache = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'crystal-updater-zip-' . $signature . '.json';
+    if (is_file($cache)) {
+        $cached = json_decode(file_get_contents($cache), true);
+        if (is_array($cached) && isset($cached['files'], $cached['sha256'], $cached['checksum'], $cached['prefix'])) {
+            return $cached;
+        }
+    }
+    $zip = new ZipArchive();
+    if ($zip->open($absolute) !== true) { fail('Invalid updater ZIP: ' . $group . '.zip', 500); }
+    $entries = array();
+    $wrapped = 0;
+    for ($i = 0; $i < $zip->numFiles; ++$i) {
+        $entry = $zip->statIndex($i);
+        if ($entry === false) { fail('Unable to read updater ZIP entries', 500); }
+        $name = str_replace(chr(92), '/', $entry['name']);
+        while (substr($name, 0, 2) === './') { $name = substr($name, 2); }
+        if ($name === '' || $name[0] === '/' || preg_match('~(?:^|/)\.{1,2}(?:/|$)|[\x00-\x1f<>:"|?*]~', $name)) {
+            fail('Unsafe path in updater ZIP: ' . $group . '.zip', 500);
+        }
+        if (substr($name, -1) === '/') { continue; }
+        if (preg_match('~\.(?:exe|dll|apk|ipa|dylib|dmg|pkg|deb|rpm|pdb|so(?:\.[0-9]+)*)$|\.app(?:/|$)~i', $name)) {
+            fail('Native packages cannot be included in shared updater ZIPs', 500);
+        }
+        if (!empty($entry['encryption_method'])) { fail('Password-protected updater ZIPs are not supported', 500); }
+        if (substr($name, 0, strlen($group) + 1) === $group . '/') { ++$wrapped; }
+        $entries[] = array('name' => $name, 'crc' => $entry['crc']);
+    }
+    $zip->close();
+    if (!$entries || ($wrapped !== 0 && $wrapped !== count($entries))) {
+        fail('ZIP must contain the folder or only its contents: ' . $group . '.zip', 500);
+    }
+    $files = array();
+    $seen = array();
+    foreach ($entries as $entry) {
+        $path = '/' . ($wrapped ? $entry['name'] : $group . '/' . $entry['name']);
+        $case_key = strtolower($path);
+        if (isset($seen[$case_key])) { fail('Duplicate path in updater ZIP: ' . $group . '.zip', 500); }
+        $seen[$case_key] = true;
+        $crc = ltrim(strtolower(sprintf('%08x', $entry['crc'])), '0');
+        $files[$path] = $crc === '' ? '0' : $crc;
+    }
+    ksort($files);
+    $sha256 = hash_file('sha256', $absolute);
+    if ($sha256 === false) { fail('Unable to hash updater ZIP', 500); }
+    $result = array('files' => $files, 'sha256' => $sha256, 'checksum' => crcForClient($absolute),
+        'prefix' => $wrapped ? $group : '');
+    $temporary = tempnam(sys_get_temp_dir(), 'crystal-updater-zip-');
+    if ($temporary !== false) {
+        $encoded = json_encode($result);
+        if ($encoded !== false && file_put_contents($temporary, $encoded, LOCK_EX) !== false) {
+            if (!@rename($temporary, $cache)) { @unlink($temporary); }
+        } else { @unlink($temporary); }
+    }
+    return $result;
+}
+
+function selectUpdaterArchives($root, &$files, $file_urls) {
+    $archives = array();
+    foreach (array('data', 'modules', 'mods') as $group) {
+        $absolute = packagePath($root, $group . '.zip');
+        if ($absolute === null) { continue; }
+        $prefix = '/' . $group . '/';
+        // A pinned GitHub manifest remains authoritative for its own paths.
+        $has_external_source = false;
+        foreach ($file_urls as $path => $unused) {
+            if (substr($path, 0, strlen($prefix)) === $prefix) { $has_external_source = true; break; }
+        }
+        if ($has_external_source) { continue; }
+        // A rebuilt loose folder supersedes a stale manually-created ZIP.
+        if (filemtime($absolute) < newestUpdaterSourceTime($root . DIRECTORY_SEPARATOR . $group)) {
+            continue;
+        }
+        $manifest = updaterZipManifest($absolute, $group);
+        foreach (array_keys($files) as $path) {
+            if (substr($path, 0, strlen($prefix)) === $prefix) { unset($files[$path]); }
+        }
+        $files = array_merge($files, $manifest['files']);
+        $archives[$group] = array('file' => '/' . $group . '.zip',
+            'checksum' => $manifest['checksum'], 'sha256' => $manifest['sha256'],
+            'prefix' => $manifest['prefix'], 'modified' => filemtime($absolute));
+    }
+    ksort($files);
+    return $archives;
+}
+
 $data = json_decode(file_get_contents('php://input'));
 if (!is_object($data)) {
     fail('Invalid input data');
@@ -133,8 +262,13 @@ $files_url = rtrim($files_url, '/');
 
 // Cache only common assets. Package hashes are calculated from the selected file.
 // Scope by installation and source version to avoid old/shared checksums.txt data.
+try {
+    $source_revision = updaterSourceRevision($root, $common_roots);
+} catch (Throwable $error) {
+    fail('Unable to inspect updater source dates', 500);
+}
 $cache_file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'crystal-updater-v3-' .
-    hash('sha256', $root . __FILE__ . hash_file('sha256', __FILE__)) . '.json';
+    hash('sha256', $root . __FILE__ . hash_file('sha256', __FILE__) . $source_revision) . '.json';
 $files = null;
 if (is_file($cache_file) && filemtime($cache_file) + $cache_interval > time()) {
     $cached = json_decode(file_get_contents($cache_file), true);
@@ -219,7 +353,17 @@ if (($data->updaterProtocol ?? null) === 2 && is_file($github_release_file)) {
     }
     $github_release = array('repository' => $release['repository'], 'commit' => $release['commit']);
 }
+$archives = array();
+// Negotiate support explicitly; existing clients keep the ordinary file list.
+if (($data->updaterProtocol ?? null) === 2 && ($data->archiveUpdates ?? false) === true) {
+    try {
+        $archives = selectUpdaterArchives($root, $files, $file_urls);
+    } catch (Throwable $error) {
+        fail('Unable to read updater ZIP packages', 500);
+    }
+}
 $ret = array('url' => $files_url, 'files' => (object)$files, 'keepFiles' => false);
+if ($archives) { $ret['archives'] = (object)$archives; }
 if ($github_release !== null) {
     $ret['fileUrls'] = (object)$file_urls;
     $ret['githubRelease'] = $github_release;

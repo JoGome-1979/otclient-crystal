@@ -64,6 +64,42 @@ local function loadModules()
   end
 end
 
+local archiveRoots = { data = true, modules = true, mods = true }
+
+local function supportsArchiveUpdates()
+  return type(g_resources.extractDownloadedArchiveToWorkDir) == 'function'
+    and type(g_resources.readFileContents) == 'function'
+    and type(g_crypt.sha256) == 'function'
+end
+
+local function validateArchives(data)
+  if data.archives == nil then return {} end
+  if type(data.archives) ~= 'table' or not supportsArchiveUpdates() then
+    return nil, 'Invalid or unsupported updater ZIP packages'
+  end
+  for root, archive in pairs(data.archives) do
+    if not archiveRoots[root] or type(archive) ~= 'table'
+      or archive.file ~= '/' .. root .. '.zip'
+      or type(archive.checksum) ~= 'string' or #archive.checksum > 8
+      or not archive.checksum:match('^[a-f0-9]+$')
+      or type(archive.sha256) ~= 'string' or #archive.sha256 ~= 64
+      or not archive.sha256:match('^[a-f0-9]+$')
+      or (archive.prefix ~= '' and archive.prefix ~= root) then
+      return nil, 'Invalid updater ZIP metadata'
+    end
+  end
+  return data.archives
+end
+
+local function verifyDownloadedArchive(file, archive)
+  local ok, contents = pcall(g_resources.readFileContents, '/downloads/' .. file:gsub('^/', ''))
+  if not ok then return false, tostring(contents) end
+  if g_crypt.sha256(contents) ~= archive.sha256 then
+    return false, 'Invalid SHA-256 of: ' .. file
+  end
+  return true
+end
+
 local function downloadFiles(url, files, index, retries, doneCallback)
   if not updaterWindow then return end
   local entry = files[index]
@@ -85,6 +121,10 @@ local function downloadFiles(url, files, index, retries, doneCallback)
     function(file, checksum, err)
       if not err and checksum ~= file_checksum then
         err = "Invalid checksum of: " .. file .. ".\nShould be " .. file_checksum .. ", is: " .. checksum
+      end
+      if not err and entry.archive then
+        local valid, archiveError = verifyDownloadedArchive(file, entry.archive)
+        if not valid then err = archiveError end
       end
       if err then
         if retries >= Updater.maxRetries then
@@ -132,6 +172,10 @@ local function updateFiles(data, keepCurrentFiles, skipAndroidPackage)
     keepCurrentFiles = true
   end
 
+  local archives, archiveError = validateArchives(data)
+  if not archives then return Updater.error(archiveError) end
+
+  updaterWindow.status:setText(tr('Verificando arquivos locais...'))
   local newFiles = false
   local finalFiles = {}
   local localFiles = g_resources.filesChecksums()
@@ -158,10 +202,28 @@ local function updateFiles(data, keepCurrentFiles, skipAndroidPackage)
     end
   end
 
+  -- Download one ZIP for each newer group that contains changed/missing files.
+  local archiveUpdates = {}
+  for root, archive in pairs(archives) do
+    local prefix = '/' .. root .. '/'
+    for file, checksum in pairs(data.files) do
+      if file:sub(1, #prefix) == prefix and localFiles[file] ~= checksum then
+        local entry = { archive.file, archive.checksum }
+        entry.archive = archive
+        entry.root = root
+        table.insert(toUpdate, entry)
+        archiveUpdates[root] = true
+        newFiles = true
+        break
+      end
+    end
+  end
+
   -- update files
   for file, checksum in pairs(data.files) do
     table.insert(finalFiles, file)
-    if not localFiles[file] or localFiles[file] ~= checksum then
+    local root = file:match('^/([^/]+)/')
+    if not archiveUpdates[root] and (not localFiles[file] or localFiles[file] ~= checksum) then
       table.insert(toUpdate, { file, checksum, fileUrls[file] })
       table.insert(toUpdateFiles, file)
       newFiles = true
@@ -185,7 +247,7 @@ local function updateFiles(data, keepCurrentFiles, skipAndroidPackage)
   end
 
   -- update of some files require full client restart
-  local forceRestart = false
+  local forceRestart = next(archiveUpdates) ~= nil
   local reloadModules = false
   local forceRestartPattern = { "init.lua", "corelib", "updater", "otmod" }
   for _, file in ipairs(toUpdate) do
@@ -212,29 +274,44 @@ local function updateFiles(data, keepCurrentFiles, skipAndroidPackage)
     updaterWindow.downloadStatus:hide()
     scheduledEvent = scheduleEvent(function()
       local restart = binary or (not loadModulesFunction and reloadModules) or forceRestart
-      if newFiles then
+      if #toUpdateFiles > 0 then
         if g_resources.updateFiles(toUpdateFiles, not restart) == false then
           -- The native error is already shown by onLog; do not restart.
           return
         end
       end
 
-      if binary then
-        if g_resources.updateExecutable(binary) == false then
-          -- The native error is already shown by onLog; do not restart.
+      local function installArchives(index)
+        if not updaterWindow then return end
+        local entry = toUpdate[index]
+        if not entry then
+          if binary and g_resources.updateExecutable(binary) == false then return end
+          if restart then
+            g_app.restart()
+          else
+            if reloadModules then
+              g_textures.clearCache()
+              g_modules.reloadModules()
+            end
+            Updater.abort()
+          end
           return
         end
+        if not entry.archive then return installArchives(index + 1) end
+        updaterWindow.status:setText(tr('Descompactando %s. Aguarde...', entry[1]))
+        g_logger.info('[updater] Extracting ' .. entry[1] .. ' into ' .. entry.root .. '/')
+        -- Let the UI render before the native extractor starts working.
+        scheduledEvent = scheduleEvent(function()
+          if not updaterWindow then return end
+          local ok, extracted = pcall(g_resources.extractDownloadedArchiveToWorkDir,
+            entry[1], entry.root, entry.archive.prefix, entry.archive.prefix ~= '')
+          if not ok or extracted ~= true then
+            return Updater.error('Unable to extract ' .. entry[1] .. ': ' .. tostring(extracted))
+          end
+          installArchives(index + 1)
+        end, 50)
       end
-
-      if restart then
-        g_app.restart()
-      else
-        if reloadModules then
-          g_textures.clearCache()
-          g_modules.reloadModules()
-        end
-        Updater.abort()
-      end
+      installArchives(1)
     end, 100)
   end)
 end
@@ -279,7 +356,9 @@ function Updater.check(args)
       return Updater.error(tr("Timeout"))
     end
     if updateData and (value > 60 or (not g_platform.isMobile() or not ALLOW_CUSTOM_SERVERS or not loadModulesFunc)) then -- gives 3s to set custom updater for mobile version
-      return updateFiles(updateData)
+      updaterWindow.status:setText(tr('Verificando arquivos locais...'))
+      scheduledEvent = scheduleEvent(function() updateFiles(updateData) end, 50)
+      return
     end
     scheduledEvent = scheduleEvent(function() progressUpdater(value + 1) end, 100)
     updaterWindow.mainProgress:setPercent(value)
@@ -293,6 +372,7 @@ function Updater.check(args)
 
   httpOperationId = HTTP.postJSON(Services.updater, {
     updaterProtocol = 2,
+    archiveUpdates = supportsArchiveUpdates(),
     version = g_app.getBuildRevision(),
     build = g_app.getVersion(),
     os = g_app.getOs(),

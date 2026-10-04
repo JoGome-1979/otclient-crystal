@@ -1,146 +1,155 @@
 
 <h1>
-  <img src="https://crystalgames.com.br/?donate/blob/main/data/images/clienticon.png?raw=true" width="32" alt="logo"/>
-  OTClient - Redemption
+  <img src="data/images/clienticon.png" width="32" alt="Logo do Crystal Client"/>
+  Crystal Client — OTClient Redemption
 </h1>
 
-[![Discord Shield](https://discordapp.com/api/guilds/888062548082061433/widget.png?style=shield)](https://discord.gg/tUjTBZzMCy)
-[![CI](https://github.com/opentibiabr/otclient/actions/workflows/ci.yml/badge.svg)](https://github.com/opentibiabr/otclient/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Discord da Crystal](https://img.shields.io/badge/Discord-Crystal_Games-5865F2?logo=discord&logoColor=white)](https://discord.gg/WpBGsRNC7D)
+[![Crystal Games](https://img.shields.io/badge/Site-Crystal_Games-009688)](https://crystalgames.com.br/)
+[![Licença: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## <a id="table-of-contents"></a>📋 Table of Contents
-1. ![Logo](https://raw.githubusercontent.com/mehah/otclient/main/src/otcicon.ico)  [What is OTClient?](#what-is-otclient)
-2. 🚀 [Features](#features)
-3. <img height="16" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/android/android.png"/> [The Mobile Project](#the-mobile-project)
-4. 🔨 [Compiling](#compiling)
+## <a id="table-of-contents"></a>📋 Sumário
+
+1. <img src="data/images/clienticon.png" height="20" alt="Logo do Crystal Client"/>  [O que é o Crystal Client?](#what-is-otclient)
+2. 🚀 [Recursos](#features)
+3. <img height="16" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/android/android.png"/> [Projeto para dispositivos móveis](#the-mobile-project)
+4. 🔨 [Compilação](#compiling)
 5. 🐳 [Docker](#docker)
-6. 🩺 [Need Help?](#need-help)
-7. 📑 [Bugs](#bugs)
-8. ❤️ [Roadmap](#roadmap)
-9. 💯 [Support Protocol](#support-protocol)
-10. ©️ [License](#license)
-11. ❤️ [Contributors](#contributors)
-12. 📦 [Client Assets Auto-Install](docs/client-assets-auto-install.md)
+6. 🩺 [Precisa de ajuda?](#need-help)
+7. 📑 [Problemas e correções](#bugs)
+8. ❤️ [Planejamento](#roadmap)
+9. 💯 [Protocolos compatíveis](#support-protocol)
+10. ©️ [Licença](#license)
+11. ❤️ [Colaboradores](#contributors)
+12. 📦 [Instalação automática dos arquivos do jogo](docs/client-assets-auto-install.md)
+13. ⬆️ [Atualização por ZIP](docs/UPDATER-ZIP.md)
 
 ---
 
-## <a id="what-is-otclient"></a>![Logo](https://raw.githubusercontent.com/mehah/otclient/main/src/otcicon.ico) What is OTClient?
-OTClient is an alternative Tibia client for usage with OTServ. It aims to be **complete** and **flexible**:
+## <a id="what-is-otclient"></a><img src="data/images/clienticon.png" height="20" alt="Logo do Crystal Client"/> O que é o Crystal Client?
 
-- **LUA scripting** for all game interface functionality
-- **CSS-like syntax** for UI design
-- **Modular system**: each functionality is a separate module, allowing easy customization
-- Users can create new mods and extend the interface
-- Written in **C++20** and heavily scripted in **LUA**
+O **Crystal Client** é o cliente da [Crystal Games](https://crystalgames.com.br/), baseado no OTClient Redemption. O OTClient é uma alternativa ao cliente de Tibia para servidores OTServ, com foco em uma interface **completa** e **flexível**:
 
-For a server to connect to, you can build your own with **theforgottenserver** or **canary**.
+- **Scripts Lua** para as funcionalidades da interface do jogo
+- **Sintaxe semelhante a CSS** para definir a interface
+- **Sistema modular**: cada funcionalidade possui seu próprio módulo, facilitando a personalização
+- Possibilidade de criar mods e ampliar a interface
+- Desenvolvido em **C++** e **Lua**; esta base usa C++20 no Windows e C++23 nas demais compilações nativas
+
+Para jogar, acesse o [site da Crystal Games](https://crystalgames.com.br/) para obter o cliente. A configuração desta edição utiliza **Canary**; a base OTClient também possui integrações com **The Forgotten Server**.
 
 > [!NOTE]
-> Based on [edubart/otclient](https://github.com/edubart/otclient) • Rev: [2.760](https://github.com/edubart/otclient/commit/fc39ee4adba8e780a2820bfda66fc942d74cedf4)
+> Baseado em [edubart/otclient](https://github.com/edubart/otclient) • Revisão: [2.760](https://github.com/edubart/otclient/commit/fc39ee4adba8e780a2820bfda66fc942d74cedf4)
 
 ---
 
-## <a id="features"></a>🚀 Features
+## <a id="features"></a>🚀 Recursos
 
-Beyond its flexibility with scripts, OTClient comes with many features that enable client-side innovation in OTServ: **sound system**, **graphics effects with shaders**, **modules/addons**, **animated textures**, **styleable UI**, **transparency**, **multi-language**, **in-game LUA terminal**, and an **OpenGL 2.0 ES engine** that allows porting to mobile platforms. It is also flexible enough to create Tibia tools like map editors using scripts—OTClient is a **framework + Tibia APIs**.
+Além da flexibilidade dos scripts, a base oferece **sistema de som**, **efeitos gráficos com shaders**, **módulos e complementos**, **texturas animadas**, **interface personalizável**, **transparência**, **suporte a idiomas**, **terminal Lua integrado** e um motor **OpenGL ES 2.0** que permite a adaptação para dispositivos móveis. Também pode servir de base para ferramentas, como editores de mapas: o OTClient reúne um **framework e APIs de Tibia**.
 
-### ⚡ Performance & Engine
+### ⚡ Desempenho e motor gráfico
+
 <details>
-  <summary>🖼️ Draw Render (optimization showcase)</summary>
+  <summary>🖼️ Renderização (demonstração de otimização)</summary>
 
   https://github.com/user-attachments/assets/fe5f1d7f-7195-4d65-bca6-c2b5d62d3890
 </details>
 
 <details>
-  <summary>📦 Asynchronous Texture Loading</summary>
+  <summary>📦 Carregamento assíncrono de texturas</summary>
 
-- **Description**: with this the spr file is not cached, consequently, less RAM is consumed.
-- **Video**:
+- **Descrição:** o arquivo SPR não fica integralmente em cache, reduzindo o consumo de memória RAM.
+- **Vídeo:**
 
   https://github.com/kokekanon/otclient.readme/assets/114332266/f3b7916a-d6ed-46f5-b516-30421de4616d
 </details>
 
 <details>
-  <summary>🧵 Multi-threading</summary>
+  <summary>🧵 Processamento com múltiplas threads</summary>
 
-**Main Thread**
-- Sound
-- Particles
-- Load Textures (files)
-- Windows Events (keyboard, mouse, ...)
-- Draw texture
+**Thread principal**
 
-**Thread 2**
-- Connection
-- Events (g_dispatcher)
-- Collect information on what will be drawn on the Map
+- Som
+- Partículas
+- Carregamento de texturas a partir de arquivos
+- Eventos da janela (teclado, mouse etc.)
+- Desenho de texturas
 
-**Thread 3**
-- Collect information on what will be drawn in the UI
+**Thread 2 — conexão e mapa**
 
-**Image:**  
+- Conexão
+- Eventos (`g_dispatcher`)
+- Coleta de informações para desenhar o mapa
+
+**Thread 3 — interface**
+
+- Coleta de informações para desenhar a interface
+
+**Imagem:**  
 ![multinucleo](https://github.com/kokekanon/otclient.readme/assets/114332266/95fb15ac-553f-4eca-937d-8c8f49990f3e)
 </details>
 
 <details>
-  <summary>🧹 Garbage Collection</summary>
+  <summary>🧹 Coleta de lixo e gerenciamento de memória</summary>
 
-**Description (1):**
+**Descrição (1):**
 ```
-Garbage Collection is the feature responsible for automatically managing memory by identifying and releasing objects that are no longer in use. This allows the client to maintain efficient memory usage, avoid unnecessary data accumulation, and improve overall stability.
+A coleta de lixo gerencia a memória automaticamente, identificando e liberando objetos que não estão mais em uso. Isso evita o acúmulo desnecessário de dados e contribui para a estabilidade do cliente.
 ```
 
-**Description (2):**  
-Garbage collector is used to check what is no longer being used and remove it from memory. *(lua, texture, drawpool, thingtype)*
+**Descrição (2):**  
+O coletor identifica o que deixou de ser utilizado e libera a memória correspondente. Isso inclui objetos Lua, texturas, drawpool e thingtype.
 </details>
 
 <details>
-  <summary>🧭 Texture Atlas System</summary>
+  <summary>🧭 Sistema de atlas de texturas</summary>
 
-*(coming with engine improvements and draw-call reduction)*
+*(recurso voltado à melhoria do motor gráfico e à redução das chamadas de desenho)*
 </details>
 
-- C++20 ( v17 , Unity build and Manifest Mode *(vcpkg.json)* ) build in x32 and x64  
-- Walking System Improvements  
-- Supports sequenced packages and compression  
-- Asserts load (Tibia 13)
+- Compilação em x86 e x64, com Visual Studio 2022 no Windows e dependências definidas pelo manifesto `vcpkg.json`  
+- Melhorias no sistema de movimentação  
+- Suporte a pacotes sequenciados e compressão  
+- Carregamento de assets (Tibia 13)
 
 ---
 
-### 🎛️ UI & UX
-<details>
-  <summary>🧩 UIWidgets Improvements</summary>
+### 🎛️ Interface e experiência do usuário
 
-- **Description:** Improvements in the UI algorithm; better performance in add/remove/reposition widgets. Visible in the **battle module**.
-- **Video:**  
+<details>
+  <summary>🧩 Melhorias nos UIWidgets</summary>
+
+- **Descrição:** melhorias nos algoritmos da interface ao adicionar, remover e reposicionar widgets, perceptíveis no **módulo de batalha**.
+- **Vídeo:**  
 
   https://github.com/user-attachments/assets/35c79819-b78b-4578-a4a2-af1235139807
 </details>
 
 <details>
-  <summary>🔁 Auto Reload Module</summary>
+  <summary>🔁 Recarregamento automático de módulos</summary>
 
-Activate: `g_modules.enableAutoReload()` ([init.lua](https://crystalgames.com.br/?donate/blob/main/init.lua#L114))  
-Video:  
+Ativação: `g_modules.enableAutoReload()` ([init.lua](init.lua))  
+Vídeo:  
 
 https://github.com/kokekanon/otclient.readme/assets/114332266/0c382d93-6217-4efa-8f22-b51844801df4
 </details>
 
 <details>
-  <summary>✨ Attached Effects System (aura, wings…)</summary>
+  <summary>✨ Sistema de efeitos anexados (auras, asas…)</summary>
 
-- Compatible with **.APNG**
+- Compatível com **APNG**
   - ThingCategoryEffect
   - ThingCategoryCreature
-  - ThingExternalTexture: images in **PNG | APNG**
-- **Wiki:** https://crystalgames.com.br/?donate/wiki/Tutorial-Attached-Effects
-- **Example Code:** [effects.lua](https://crystalgames.com.br/?donate/blob/main/modules/game_attachedeffects/effects.lua) • [test code](https://crystalgames.com.br/?donate/blob/main/modules/game_attachedeffects/attachedeffects.lua#L1)  
-- **Specific lookType settings:** [outfit_618.lua](https://crystalgames.com.br/?donate/blob/main/modules/game_attachedeffects/configs/outfit_618.lua)
+  - ThingExternalTexture: imagens em **PNG ou APNG**
+
+- **Documentação e suporte:** https://discord.gg/WpBGsRNC7D
+- **Exemplo de código:** [effects.lua](modules/game_attachedeffects/effects.lua) • [código de teste](modules/game_attachedeffects/attachedeffects.lua)  
+- **Configurações específicas por lookType:** [outfit_618.lua](modules/game_attachedeffects/configs/outfit_618.lua)
 
 > [!TIP]
-> You can adjust offsets per looktype using **ThingConfig** when a default offset doesn’t align perfectly for a given sprite.
+> Use **ThingConfig** para ajustar os deslocamentos por lookType quando o alinhamento padrão não for adequado ao sprite.
 
 <p align="center">
 <table>
@@ -150,45 +159,45 @@ https://github.com/kokekanon/otclient.readme/assets/114332266/0c382d93-6217-4efa
 <td><img src="https://github.com/kokekanon/OTredemption-Picture-NODELETE/blob/main/Picture/Attached%20Effect/Creature/003_particula.gif?raw=true" width="250"></td>
 </tr>
 <tr>
-<td align="center">ThingCategory Attached Effect</td>
-<td align="center">Texture (PNG) Attached Effect</td>
-<td align="center">Particule</td>
+<td align="center">Efeito anexado a ThingCategory</td>
+<td align="center">Efeito anexado com textura PNG</td>
+<td align="center">Partícula</td>
 </tr>
 </table>
 </p>
 </details>
 <details>
-  <summary>🧭 Module Controller System</summary>
+  <summary>🧭 Sistema de controle de módulos</summary>
 
-A safer way to create modules, without the need to unbind keys, disconnect events, or destroy widgets.  
-**Example:** ([modules/game_minimap/minimap.lua](https://crystalgames.com.br/?donate/blob/cache-for-all/modules/game_minimap/minimap.lua))
+Uma forma de organizar módulos com o gerenciamento de atalhos, conexões de eventos e widgets pelo controlador.  
+**Exemplo:** ([modules/game_minimap/minimap.lua](modules/game_minimap/minimap.lua))
 </details>
 
 <details>
-  <summary>🖼️ Anti-Aliasing Mode Options</summary>
+  <summary>🖼️ Opções de suavização de bordas</summary>
 
-- *Note*: **Smooth Retro** will consume a little more GPU.
+- **Observação:** o modo **Smooth Retro** pode aumentar o uso da GPU.
 
 **GIF:**  
 ![aa](https://github.com/kokekanon/otclient.readme/assets/114332266/5a411525-7d5a-4b16-8bb6-2c6462152d39)
 </details>
 
 <details>
-  <summary>🧩 Creature Information by UIWidget</summary>
+  <summary>🧩 Informações de criaturas com UIWidget</summary>
 
-- Enable: [setup.otml](https://crystalgames.com.br/?donate/blob/e2c5199e52bd86f573c9bb582d7548cfe7a8b026/data/setup.otml#L20)
-- Style: [modules/game_creatureinformation](https://crystalgames.com.br/?donate/tree/main/modules/game_creatureinformation)
-- **Note:** There is a performance degradation vs direct Draw Pool, about ~20%, tested with 60 monsters attacking each other.
+- Ativação: [setup.otml](data/setup.otml)
+- Estilo: [modules/game_creatureinformation](modules/game_creatureinformation)
+- **Observação da base original:** o uso de UIWidgets pode reduzir o desempenho em relação ao desenho direto pelo Draw Pool. A documentação original relatava uma diferença de aproximadamente 20% em um teste com 60 monstros.
 
-**Video:**  
+**Vídeo:**  
 
 https://github.com/kokekanon/otclient.readme/assets/114332266/c2567f3f-136e-4e11-964f-3ade89c0056b
 </details>
 
 <details>
-  <summary>🧱 Tile Widget</summary>
+  <summary>🧱 Widget em pisos do mapa</summary>
 
-Wiki: https://crystalgames.com.br/?donate/wiki/Tutorial-Attached-Effects
+Documentação e suporte: https://discord.gg/WpBGsRNC7D
 
 <p align="center">
 <table>
@@ -198,16 +207,16 @@ Wiki: https://crystalgames.com.br/?donate/wiki/Tutorial-Attached-Effects
 <td><img src="https://github.com/kokekanon/OTredemption-Picture-NODELETE/raw/main/Picture/Attached%20Effect/Tile/003_particulas.gif?raw=true" width="310"></td>
 </tr>
 <tr>
-<td align="center">Title Attached Effect</td>
-<td align="center">Title Widget</td>
-<td align="center">Title Particule</td>
+<td align="center">Efeito anexado ao piso</td>
+<td align="center">Widget no piso</td>
+<td align="center">Partícula no piso</td>
 </tr>
 </table>
 </p>
 </details>
 
 <details>
-  <summary>🧩 Support HTML/CSS Syntax</summary>
+  <summary>🧩 Suporte à sintaxe HTML/CSS</summary>
 
 https://github.com/user-attachments/assets/b16359d3-09a4-4181-bcb8-c76339b64b37
 
@@ -217,68 +226,70 @@ https://github.com/user-attachments/assets/9f20814f-0aed-4b70-8852-334ac745ec11
 
 https://github.com/user-attachments/assets/3ac8473c-8e90-4639-b815-ef183c7e2adf
 
-**Module examples:**  
-- [Shader](https://crystalgames.com.br/?donate/tree/main/modules/game_shaders)  
-- [Blessing](https://crystalgames.com.br/?donate/pull/825)
+**Exemplos de módulos:**  
+- [Shader](modules/game_shaders)  
+- [Bênçãos](modules/game_blessing/)
 </details>
 
 <details>
-  <summary>🎥 Latency-adaptive camera</summary>
+  <summary>🎥 Câmera adaptada à latência</summary>
 
-Basically the camera adapts to the server latency to always remain smooth and avoid stuttering while walking.  
-If the ping gets high, the camera moves slower to keep up with the server's response time; if the ping drops, the camera moves faster. *(Depends on character speed.)*
+A câmera se adapta à latência do servidor para suavizar a movimentação. Com ping mais alto, acompanha o tempo de resposta do servidor; com ping menor, responde mais rapidamente. O comportamento também depende da velocidade do personagem.
 </details>
 
 <details>
-  <summary>🧭 Support Negative Offset (.dat)</summary>
+  <summary>🧭 Suporte a deslocamento negativo (.dat)</summary>
 
-- Compatible with [ObjectBuilderV0.5.5](https://github.com/punkice3407/ObjectBuilder/releases/tag/v0.5.5)  
-- Enable: `g_game.enableFeature(GameNegativeOffset)`
+- Compatível com [ObjectBuilderV0.5.5](https://github.com/punkice3407/ObjectBuilder/releases/tag/v0.5.5)  
+- Ativação: `g_game.enableFeature(GameNegativeOffset)`
 
-**Video:**  
+**Vídeo:**  
 
 https://github.com/kokekanon/otclient.readme/assets/114332266/16aaa78b-fc55-4c6e-ae63-7c4063c5b032
 </details>
 
-- Floor Shadowing  
-- Highlight Mouse Target *(press **Shift** to select any object)*  
-- Floor View Mode *(Normal, Fade, Locked, Always, Always with transparency)*  
-- Floating Effects Option  
-- Refactored Walk System  
-- Support for more mouse buttons *(e.g., 4 and 5)*
-- Support DirectX  
-- Hud Scale
+- Sombreamento dos pisos  
+- Destaque do alvo sob o mouse *(pressione **Shift** para selecionar um objeto)*  
+- Modos de visualização dos andares *(normal, transição, fixo, sempre visível e sempre visível com transparência)*  
+- Opção de efeitos flutuantes  
+- Sistema de movimentação reorganizado  
+- Suporte a botões adicionais do mouse, como os botões 4 e 5
+- Suporte a DirectX  
+- Ajuste da escala da interface (HUD)
 
 ---
 
-### 🔗 Compatibility & Protocols
-- Client **7.6 ~ 12.85 ~ 12.92**, **13.00 ~ 15.24** support *(protobuf)*  
-- Market rewritten (compatible with TFS and Canary)  
-- Async Texture Loading *(engine-level feature)*  
-- Supports sequenced packages and compression  
+### 🔗 Compatibilidade e protocolos
+
+- Compatibilidade herdada da base com clientes **7.6 a 12.92** e **13.00 a 15.24**, conforme o protocolo e os recursos habilitados *(protobuf)*  
+- Mercado reescrito, com integrações para TFS e Canary  
+- Carregamento assíncrono de texturas no motor gráfico  
+- Suporte a pacotes sequenciados e compressão  
 
 > [!NOTE]
-> See section **[💯 Support Protocol](#support-protocol)** for a full compatibility matrix and required flags.
+> Consulte **[💯 Protocolos compatíveis](#support-protocol)** para conhecer a matriz da base e as opções necessárias. Esta edição configura o servidor Crystal com protocolo **1525**.
 
 ---
 
-### 🧩 Community Mods & Integrations
+### 🧩 Mods e integrações da comunidade
 
-#### 🙋 Community (Features)
+Recursos e créditos herdados da base OTClient. Os exemplos e materiais externos abaixo permanecem como referências dos autores originais.
+
+#### 🙋 Recursos da comunidade
 
 <details>
   <summary>🕹️ Discord RPC — @SkullzOTS</summary>
 
-- by [@SkullzOTS](https://github.com/SkullzOTS), [@surfaceflinger](https://github.com/surfaceflinger) and [@libergod](https://github.com/libergod)
-- To enable just go to [config.h](https://crystalgames.com.br/?donate/blob/main/src/framework/config.h#L43), set **1** in `ENABLE_DISCORD_RPC` and configure the others definitions
-- If using CMake execute: 
-  - Removes Content of Build Folder if needed
-  - `if (Test-Path -Path build) { Remove-Item -Path build -Recurse -Force; New-Item -Path build -ItemType Directory }` 
-  - Configure CMake
-  - `cmake -B build -G "Ninja" -DENABLE_DISCORD_RPC=ON`
-  - Build it
-  - `cmake --build build`
-- Step-by-step on **YouTube**: https://www.youtube.com/watch?v=zCHYtRlD58g
+- Desenvolvido por [@SkullzOTS](https://github.com/SkullzOTS), [@surfaceflinger](https://github.com/surfaceflinger) e [@libergod](https://github.com/libergod)
+- Para habilitar, consulte [config.h](src/framework/config.h), confira `ENABLE_DISCORD_RPC` e as demais definições
+- Para habilitar pelo CMake, execute na raiz, com o preset da arquitetura desejada:
+
+  ```powershell
+  cmake --preset windows-x64-release -DENABLE_DISCORD_RPC=ON
+  cmake --build build/windows-x64-release -j 10
+  ```
+
+- Tutorial em **YouTube**: https://www.youtube.com/watch?v=zCHYtRlD58g
 
 <p align="center">
 <table>
@@ -288,54 +299,58 @@ https://github.com/kokekanon/otclient.readme/assets/114332266/16aaa78b-fc55-4c6e
 <td><img src="https://github.com/kokekanon/OTredemption-Picture-NODELETE/blob/main/Picture/Discord/003_future.png?raw=true" width="200"></td>
 </tr>
 <tr>
-<td align="center">Example interface</td>
-<td align="center">Example in game</td>
-<td align="center">future discord-game-sdk</td>
+<td align="center">Exemplo de interface</td>
+<td align="center">Exemplo no jogo</td>
+<td align="center">Integração com discord-game-sdk</td>
 </tr>
 </table>
 </p>
 </details>
 <details>
-  <summary>🔐 Encryption System — @Mrpox *(unsafe implementation)*</summary>
+  <summary>🔐 Sistema de criptografia — @Mrpox *(implementação insegura)*</summary>
 
-- by [@Mrpox](https://github.com/Mrpox)  
-- Enable via [config.h](https://crystalgames.com.br/?donate/blob/main/src/framework/config.h#L33): set **ENABLE_ENCRYPTION=1** and change **ENCRYPTION_PASSWORD**  
-- To enable building encryption with `--encrypt`, set **ENABLE_ENCRYPTION_BUILDER=1** (by [@TheMaoci](https://github.com/TheMaoci)) — removes encryption code from production build
-- Generate encrypted files by running client with: `--encrypt SET_YOUR_PASSWORD_HERE` (or omit to use the password from [config.h](https://crystalgames.com.br/?donate/blob/main/src/framework/config.h#L38))
+- Desenvolvido por [@Mrpox](https://github.com/Mrpox)  
+- Habilite em [config.h](src/framework/config.h): defina **ENABLE_ENCRYPTION=1** e altere **ENCRYPTION_PASSWORD**  
+- Para habilitar a geração de arquivos com `--encrypt`, defina **ENABLE_ENCRYPTION_BUILDER=1** (por [@TheMaoci](https://github.com/TheMaoci)) — permite separar o código do gerador da compilação de produção
+- Gere os arquivos executando o cliente com `--encrypt SUA_SENHA_AQUI` (ou omita a senha para usar o valor de [config.h](src/framework/config.h))
 
 > [!WARNING]
-> This encryption implementation is considered **unsafe**. Use at your own risk.
+> A documentação original considera esta implementação **insegura**. Ela não deve ser tratada como proteção confiável para segredos.
 </details>
 <details>
-  <summary>⬆️ Client Updater — @conde2</summary>
+  <summary>⬆️ Atualizador do cliente — @conde2</summary>
 
-- by [@conde2](https://github.com/conde2)  
-- Paste the **API** folder in your www folder: https://crystalgames.com.br/?donate/tree/main/tools/api  
-- Create a folder called `files` in your www and paste `init.lua`, `modules`, `data`, and `exe`  
-- Uncomment and change this line: https://crystalgames.com.br/?donate/blob/main/init.lua#L6
-</details>
-
-<details>
-  <summary>🌈 Colored Text — @conde2</summary>
-
-- by [@conde2](https://github.com/conde2)  
-- Usage: `widget:setColoredText("{Colored text, #ff00ff} normal text")`
+- Implementação original por [@conde2](https://github.com/conde2); integração desta edição com a Crystal Games.
+- Endpoint: [crystalgames.com.br/api/updater.php](https://crystalgames.com.br/api/updater.php).
+- API do projeto: [tools/api/updater.php](tools/api/updater.php); cliente: [modules/updater/updater.lua](modules/updater/updater.lua).
+- Recursos publicados em `api/files/`: `init.lua`, `data/`, `modules/` e `mods/`.
+- Binários selecionados por sistema e arquitetura: Windows x86/x64, Linux x86/x64 e pacote Android quando disponível.
+- Suporte a `data.zip`, `modules.zip` e `mods.zip`, com CRC32 e SHA-256, extração nas pastas padrão e reinício automático.
+- A API compara as datas no servidor: ZIP atualizado prevalece; uma pasta mais recente mantém a atualização por arquivo.
+- Leia o [guia de teste dos ZIPs](docs/UPDATER-ZIP.md) e a [organização da distribuição](DISTRIBUICAO.md). Os ZIPs de recursos ainda são preparados manualmente.
 </details>
 
 <details>
-  <summary>🔳 QR Code support — @conde2</summary>
+  <summary>🌈 Texto colorido — @conde2</summary>
 
-- by [@conde2](https://github.com/conde2)  
-- **UIQrCode** properties example:
+- Desenvolvido por [@conde2](https://github.com/conde2)  
+- Uso: `widget:setColoredText("{Texto colorido, #ff00ff} texto normal")`
+</details>
+
+<details>
+  <summary>🔳 Suporte a QR Code — @conde2</summary>
+
+- Desenvolvido por [@conde2](https://github.com/conde2)  
+- Exemplo de propriedades de **UIQrCode**:
   - `code-border: 2`
-  - `code: Hail OTClient Redemption - Conde2 Dev`
+  - `code: Crystal Games - crystalgames.com.br`
 </details>
 
 <details>
-  <summary>💬 Typing Icon — @SkullzOTS</summary>
+  <summary>💬 Indicador de digitação — @SkullzOTS</summary>
 
-- by [@SkullzOTS](https://github.com/SkullzOTS)  
-- Enable in [setup.otml](https://crystalgames.com.br/?donate/blob/main/data/setup.otml): set `draw-typing: true`
+- Desenvolvido por [@SkullzOTS](https://github.com/SkullzOTS)  
+- Habilite em [setup.otml](data/setup.otml): defina `draw-typing: true`
 
 <p align="center">
   <img src="https://github.com/kokekanon/OTredemption-Picture-NODELETE/blob/main/Picture/typing%20ico/001.gif?raw=true" width="200">
@@ -343,11 +358,11 @@ https://github.com/kokekanon/otclient.readme/assets/114332266/16aaa78b-fc55-4c6e
 </details>
 
 <details>
-  <summary>🪜 Smooth Walk Elevation — @SkullzOTS</summary>
+  <summary>🪜 Movimentação suave entre níveis — @SkullzOTS</summary>
 
-- by [@SkullzOTS](https://github.com/SkullzOTS)  
-- Preview: [Gyazo](https://i.gyazo.com/af0ed0f15a9e4d67bd4d0b2847bd6be7.gif)  
-- Enable in [modules/game_features/features.lua](https://crystalgames.com.br/?donate/blob/main/modules/game_features/features.lua#L5): uncomment line 5 (`g_game.enableFeature(GameSmoothWalkElevation)`)
+- Desenvolvido por [@SkullzOTS](https://github.com/SkullzOTS)  
+- Prévia: [Gyazo](https://i.gyazo.com/af0ed0f15a9e4d67bd4d0b2847bd6be7.gif)  
+- Habilite em [modules/game_features/features.lua](modules/game_features/features.lua): habilite `g_game.enableFeature(GameSmoothWalkElevation)` quando o servidor for compatível
 
 <p align="center">
   <img src="https://github.com/kokekanon/OTredemption-Picture-NODELETE/blob/main/Picture/smooth/001_smooth.gif?raw=true" width="200">
@@ -355,32 +370,31 @@ https://github.com/kokekanon/otclient.readme/assets/114332266/16aaa78b-fc55-4c6e
 </details>
 
 <details>
-  <summary>🗺️ Layout based on Tibia 13 — @marcosvf132</summary>
+  <summary>🗺️ Interface baseada no Tibia 13 — @marcosvf132</summary>
 
-- by [@marcosvf132](https://github.com/marcosvf132)  
-- **Game_shop** based on Store by [@Oskar1121](https://github.com/Oskar1121/Store), modified/fixed by [@Nottinghster](https://github.com/Nottinghster/)
-- **Minimap WorldTime**
-  - TFS C++ (old): `void ProtocolGame::sendWorldTime()`
-  - TFS LUA (new): `function Player.sendWorldTime(self, time)`
+- Desenvolvido por [@marcosvf132](https://github.com/marcosvf132)  
+- **Game_shop** baseado na loja de [@Oskar1121](https://github.com/Oskar1121/Store), com alterações e correções de [@Nottinghster](https://github.com/Nottinghster/)
+- **Horário do mundo no minimapa**
+  - TFS C++ (antigo): `void ProtocolGame::sendWorldTime()`
+  - TFS Lua (novo): `function Player.sendWorldTime(self, time)`
   - Canary: `void ProtocolGame::sendTibiaTime(int32_t time)`
-- **Outfit windows** compatible with attachEffect, shader  
+- **Janelas de aparência** compatíveis com efeitos anexados e shaders  
   - Canary  
   - **1.4.2**: https://github.com/kokekanon/TFS-1.4.2-Compatible-Aura-Effect-Wings-Shader-MEHAH/commit/77f80d505b01747a7c519e224d11c124de157a8f  
-  - **Downgrade**:  
+  - **Versões anteriores:**  
     - https://github.com/kokekanon/forgottenserver-downgrade/pull/2  
     - https://github.com/kokekanon/forgottenserver-downgrade/pull/7  
     - https://github.com/kokekanon/forgottenserver-downgrade/pull/9
-- Calendar
-- `client_bottommenu` (activate `Services.status` array in `init.lua`)
+- Calendário
+- `client_bottommenu` (configure `Services.status` em `init.lua` de acordo com a API do servidor)
 
-**Status service**  
-Put `./otclient/tools/api/status.php` in:  
-`C:/UniServerZ/www/api/`
+**Serviço de status**  
+A implementação de referência está em [tools/api/status.php](tools/api/status.php). A pasta da API no site Crystal é `/var/www/crystalgames/api/`; consulte a configuração de `Services.status` em [init.lua](init.lua).
 
-If it doesn't work, enable **curl**:
+Se utilizar essa API PHP de referência, habilite a extensão **curl**:
 
-![image](https://github.com/Nottinghster/otclient/assets/114332266/99ad2ce7-d70f-47f4-aa19-083140fb5814)
-![image](https://github.com/Nottinghster/otclient/assets/114332266/84349388-a458-4eb5-b1d6-cce5693cfd5a)
+![Exemplo de configuração](https://github.com/Nottinghster/otclient/assets/114332266/99ad2ce7-d70f-47f4-aa19-083140fb5814)
+![Exemplo de configuração](https://github.com/Nottinghster/otclient/assets/114332266/84349388-a458-4eb5-b1d6-cce5693cfd5a)
 
 <p align="center">
 <table>
@@ -390,30 +404,30 @@ If it doesn't work, enable **curl**:
 </tr>
 <tr>
 <td align="center">Interface</td>
-<td align="center">In-game</td>
+<td align="center">Dentro do jogo</td>
 </tr>
 </table>
 </p>
 
-- Imbuement tracker — by [@Reyaleman](https://github.com/reyaleman)  
-- Blessing  
-- Screenshot  
-- Highscores  
-- Store *(compatible with 1098, 12.91 ~ 15.24)*  
-- QuickLoot  
-- Groups Vip  
-- Reward Wall *(Daily Rewards)*
+- Monitor de imbuements — desenvolvido por [@Reyaleman](https://github.com/reyaleman)  
+- Bênçãos  
+- Captura de tela  
+- Classificação dos jogadores  
+- Loja *(compatibilidade da base com 10.98 e 12.91 a 15.24)*  
+- Coleta rápida de itens (QuickLoot)  
+- Grupos na lista VIP  
+- Recompensas diárias (Reward Wall)
 </details>
 
 <details>
-  <summary>🌐 Browser Client — @OTArchive</summary>
+  <summary>🌐 Cliente para navegador — @OTArchive</summary>
 
-- by [@OTArchive](https://github.com/OTArchive)  
-- Wiki: https://github.com/OTArchive/otclient-web/wiki/Guia-%E2%80%90-OTClient-Redemption-Web  
-- Video: https://github.com/user-attachments/assets/e8ab58c7-1be3-4c76-bc6d-bd831e846826
+- Desenvolvido por [@OTArchive](https://github.com/OTArchive)  
+- Documentação e suporte: https://github.com/OTArchive/otclient-web/wiki/Guia-%E2%80%90-OTClient-Redemption-Web  
+- Vídeo: https://github.com/user-attachments/assets/e8ab58c7-1be3-4c76-bc6d-bd831e846826
 </details>
 
-- Mobile Support — by [@tuliomagalhaes](https://github.com/tuliomagalhaes) • [@BenDol](https://github.com/BenDol) • [@SkullzOTS](https://github.com/SkullzOTS)
+- Suporte a dispositivos móveis — desenvolvido por [@tuliomagalhaes](https://github.com/tuliomagalhaes) • [@BenDol](https://github.com/BenDol) • [@SkullzOTS](https://github.com/SkullzOTS)
 
 <p align="center">
 <table>
@@ -424,17 +438,17 @@ If it doesn't work, enable **curl**:
 </tr>
 <tr>
 <td align="center">Interface</td>
-<td align="center">Density Pixel</td>
+<td align="center">Densidade de pixels</td>
 <td align="center">Joystick</td>
 </tr>
 </table>
 </p>
 
-- Support **HTTP/HTTPS/WS/WSS** — by [@alfuveam](https://github.com/alfuveam)
-- Support Tibia 12.85/protobuf by [@Nekiro](https://github.com/nekiro)
-- Action Bar — by [@DipSet](https://github.com/Dip-Set1)  
-- Access to widget children via `widget.childId` — by [@Hugo0x1337](https://github.com/Hugo0x1337)  
-- Shader System Fix *(CTRL + Y)* — by [@FreshyPeshy](https://github.com/FreshyPeshy)
+- Suporte a **HTTP/HTTPS/WS/WSS** — desenvolvido por [@alfuveam](https://github.com/alfuveam)
+- Suporte ao Tibia 12.85/protobuf por [@Nekiro](https://github.com/nekiro)
+- Barra de ações — desenvolvida por [@DipSet](https://github.com/Dip-Set1)  
+- Acesso aos widgets filhos por `widget.childId` — desenvolvido por [@Hugo0x1337](https://github.com/Hugo0x1337)  
+- Correções do sistema de shaders *(Ctrl + Y)* — desenvolvidas por [@FreshyPeshy](https://github.com/FreshyPeshy)
 
 <p align="center">
 <table>
@@ -444,30 +458,31 @@ If it doesn't work, enable **curl**:
 <td><img src="https://github.com/kokekanon/OTredemption-Picture-NODELETE/blob/main/Picture/Shader/002_mount.gif?raw=true" width="200"></td>
 </tr>
 <tr>
-<td align="center">Creature</td>
-<td align="center">Map</td>
-<td align="center">Mount</td>
+<td align="center">Criatura</td>
+<td align="center">Mapa</td>
+<td align="center">Montaria</td>
 </tr>
 </table>
 </p>
 
-- Refactored Battle Module — by [@andersonfaaria](https://github.com/andersonfaaria)  
-- Health & Mana Circle — by [@EgzoT](https://github.com/EgzoT), [@GustavoBlaze](https://github.com/GustavoBlaze), [@Tekadon58](https://github.com/Tekadon58) • [Project](https://github.com/EgzoT/-OTClient-Mod-health_and_mana_circle)  
-- Tibia Theme 1.2 by **Zews** — [Forum Thread](https://otland.net/threads/otc-tibia-theme-v1-2.230988/)  
-- Add option `ADJUST_CREATURE_INFORMATION_BASED_ON_CROP_SIZE` in [setup.otml](https://crystalgames.com.br/?donate/blob/main/data/setup.otml#L24) — by [@SkullzOTS](https://github.com/SkullzOTS)
-- **Lua Debugger for VSCode** — [see wiki](https://crystalgames.com.br/?donate/wiki/Lua-Debugging-(VSCode)) — by [@BenDol](https://github.com/BenDol)  
-- **3D Sound and Sound Effects!** — by [@Codinablack](https://github.com/codinablack)
+- Módulo de batalha reorganizado — desenvolvido por [@andersonfaaria](https://github.com/andersonfaaria)  
+- Círculos de vida e mana — desenvolvidos por [@EgzoT](https://github.com/EgzoT), [@GustavoBlaze](https://github.com/GustavoBlaze), [@Tekadon58](https://github.com/Tekadon58) • [Projeto](https://github.com/EgzoT/-OTClient-Mod-health_and_mana_circle)  
+- Tema Tibia 1.2 por **Zews** — [Tópico no fórum](https://otland.net/threads/otc-tibia-theme-v1-2.230988/)  
+- Opção `ADJUST_CREATURE_INFORMATION_BASED_ON_CROP_SIZE` em [setup.otml](data/setup.otml) — desenvolvido por [@SkullzOTS](https://github.com/SkullzOTS)
+- **Depuração Lua no VS Code** — [orientações no Discord](https://discord.gg/WpBGsRNC7D) — desenvolvido por [@BenDol](https://github.com/BenDol)  
+- **Som 3D e efeitos sonoros!** — desenvolvido por [@Codinablack](https://github.com/codinablack)
 
-| Example 1 | Example 2 | Example 3 |
+| Exemplo 1 | Exemplo 2 | Exemplo 3 |
 |---------|---------|---------|
 | <video src="https://github.com/kokekanon/otclient.readme/assets/114332266/4547907a-8eb9-42f5-b445-901cb5270509" width="200" controls></video> | <video src="https://github.com/kokekanon/otclient.readme/assets/114332266/0bb4739f-e902-4370-85dc-e796564aac8e" width="200" controls></video> | <video src="https://github.com/kokekanon/otclient.readme/assets/114332266/95db3fa1-a793-4ab7-86a3-e21a8543a23c" width="200" controls></video> |
 
-#### 💸 Sponsored (Features)
-- **Bot V8** — ([@luanluciano93](https://github.com/luanluciano93), [@SkullzOTS](https://github.com/SkullzOTS), [@kokekanon](https://github.com/kokekanon), [@FranciskoKing](https://github.com/FranciskoKing), [@Kizuno18](https://github.com/Kizuno18))  
-  - Adapted **85%**  
-  - [VS Solution](https://crystalgames.com.br/?donate/blob/68e4e1b94c2041bd235441244156e6477058250c/vc17/settings.props#L9) / [CMAKE](https://crystalgames.com.br/?donate/blob/68e4e1b94c2041bd235441244156e6477058250c/src/CMakeLists.txt#L13)
+#### 💸 Recursos patrocinados na base original
 
-- **Shader with Framebuffer** — ([@SkullzOTS](https://github.com/SkullzOTS), [@Mryukiimaru](https://github.com/Mryukiimaru), [@JeanTheOne](https://github.com/JeanTheOne), [@KizaruHere](https://github.com/KizaruHere))
+- **Bot V8** — ([@luanluciano93](https://github.com/luanluciano93), [@SkullzOTS](https://github.com/SkullzOTS), [@kokekanon](https://github.com/kokekanon), [@FranciskoKing](https://github.com/FranciskoKing), [@Kizuno18](https://github.com/Kizuno18))  
+  - A documentação da base informava **85%** de adaptação  
+  - [Configuração de compilação](CMakePresets.json) / [CMAKE](src/CMakeLists.txt)
+
+- **Shader com framebuffer** — ([@SkullzOTS](https://github.com/SkullzOTS), [@Mryukiimaru](https://github.com/Mryukiimaru), [@JeanTheOne](https://github.com/JeanTheOne), [@KizaruHere](https://github.com/KizaruHere))
 
 <p align="center">
 <table>
@@ -477,126 +492,164 @@ If it doesn't work, enable **curl**:
 <td><img src="https://github.com/kokekanon/OTredemption-Picture-NODELETE/blob/main/Picture/Shader/Framebuffer/003_UICreature.gif?raw=true" width="110"></td>
 </tr>
 <tr>
-<td align="center">Creature</td>
-<td align="center">Items</td>
+<td align="center">Criatura</td>
+<td align="center">Itens</td>
 <td align="center">UICreature</td>
 </tr>
 </table>
 </p>
 
-- **Full Cyclopedia** — ([@luanluciano93](https://github.com/luanluciano93), [@kokekanon](https://github.com/kokekanon), [@MUN1Z](https://github.com/MUN1Z), [@qatari](https://github.com/qatari))
+- **Cyclopedia completa** — ([@luanluciano93](https://github.com/luanluciano93), [@kokekanon](https://github.com/kokekanon), [@MUN1Z](https://github.com/MUN1Z), [@qatari](https://github.com/qatari))
 
-- **Wheel of Destiny** — (R!ck, ZLukSrT#8740, Christianlb, [@andreoam](https://github.com/andreoam), [@Libergod](https://github.com/libergod))
+- **Roda do Destino** — (R!ck, ZLukSrT#8740, Christianlb, [@andreoam](https://github.com/andreoam), [@Libergod](https://github.com/libergod))
 
-#### 🔦 OTClient V8 (Features)
-- Lighting System  
-- Floor Fading  
-- Path Finding  
-- Module Shop  
-- Module Outfit  
-- Placeholder  
+#### 🔦 Recursos provenientes do OTClient V8
+
+- Sistema de iluminação  
+- Transição entre andares  
+- Busca de caminhos  
+- Módulo de loja  
+- Módulo de aparência  
+- Texto de orientação em campos (placeholder)  
 - UIGraph  
-- Keybinds  
-- Cam system
+- Atalhos de teclado  
+- Sistema de câmera
 
 ---
 
-## <a id="the-mobile-project"></a><img height="20" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/android/android.png"/> The Mobile Project
-This is a fork of edubart's OTClient. The objective of this fork is to develop a runnable OTClient on mobile devices.
+## <a id="the-mobile-project"></a><img height="20" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/android/android.png"/> Projeto para dispositivos móveis
 
-**Tasks**
-- [x] Compile on Android devices
-- [ ] Compile on Apple devices
-- [ ] Adapt the UI reusing the existing LUA code
+O projeto móvel da base OTClient busca executar o cliente em dispositivos móveis. Esta edição mantém o projeto Android e os presets de empacotamento de APK.
+
+**Tarefas da base móvel**
+
+- [x] Suporte de compilação para Android
+- [ ] Integração para iOS
+- [ ] Continuar a adaptação da interface reaproveitando o código Lua
 
 ---
 
-## <a id="compiling"></a>🔨 Compiling
-If you are interested in compiling this project, visit the **[Wiki](https://crystalgames.com.br/?donate/wiki)**.
+## <a id="compiling"></a>🔨 Compilação
 
-For content-addressed vcpkg reuse across CMake presets, Visual Studio Solutions,
-worktrees, and compatible forks, see the [shared build cache guide](docs/development/shared-build-cache.md).
+Execute os comandos a partir da **raiz do projeto**. Consulte [DISTRIBUICAO.md](DISTRIBUICAO.md) para os presets, saídas e empacotamento, e o [ambiente Windows](docs/AMBIENTE-WINDOWS.md) para preparar outra máquina.
+
+**Windows x64 — Release**
+
+```powershell
+cmake --preset windows-x64-release
+cmake --build build/windows-x64-release -j 10
+```
+
+Presets Windows: `windows-x86-release`, `windows-x64-release`, `windows-x86-debug` e `windows-x64-debug`. Use o terminal Native Tools do Visual Studio 2022 correspondente à arquitetura.
+
+**Linux x64 — Release**, no Linux ou Ubuntu WSL:
+
+```bash
+cmake --preset linux-x64-release
+cmake --build build/linux-x64-release -j 10
+```
+
+Também há variantes Linux x86 e Debug. Consulte o [guia Linux](docs/INSTALADOR-LINUX.md).
+
+**Android — APK Release**, no Ubuntu WSL com JDK e Android SDK configurados:
+
+```bash
+cmake --preset android-release
+cmake --build build/android-release -j 10
+```
+
+Use `android-debug` para depuração. Consulte [COMPILACAO.md](COMPILACAO.md) e o [guia Android da base](docs/building/android.md). Para reutilizar dependências compatíveis entre compilações, consulte o [guia de cache compartilhado](docs/development/shared-build-cache.md).
+
+- `build/<preset>/`: cache, dependências e arquivos intermediários.
+- `dist/<preset>/`: distribuição mínima do cliente desktop.
+- `dist/scripts/<preset>/`: scripts de empacotamento desktop.
+- `dist/instalador/<preset>/`: pacotes e instaladores desktop gerados.
+- `files/`: recursos completos e binários Release para o updater.
+
+O build sincroniza o payload local; o envio ao servidor é manual. Debug preserva os binários Release já publicados. Para criar o instalador Windows que escolhe entre x86 e x64, consulte [docs/INSTALADOR.md](docs/INSTALADOR.md).
 
 ---
 
 ## <a id="docker"></a>🐳 Docker
 
-In order to build the app for production, run the following commands:
+O fluxo Linux portátil usa Docker para compilar em uma base controlada. Execute na raiz:
 
-**1) Build the image**
 ```bash
-docker build -t mehah/otclient .
+cmake --preset linux-x64-portable-release
+cmake --build build/linux-x64-portable-release -j 10
+bash dist/scripts/linux-x64-portable-release/empacotar.sh --version 1.0.0
 ```
 
-**2) Run the built image**
-```bash
-# Disable access control for the X server.
-xhost +
-
-# Run the container image with the required bindings to the host devices and volumes.
-docker run -it --rm \
-  --env DISPLAY \
-  --volume /tmp/.X11-unix:/tmp/.X11-unix \
-  --device /dev/dri \
-  --device /dev/snd mehah/otclient /bin/bash
-
-# Enable access control for the X server.
-xhost -
-```
+Para Debug, utilize `linux-x64-portable-debug`. O fluxo portátil é x64 e exige Docker disponível no Linux ou WSL. Consulte o [guia Linux](docs/INSTALADOR-LINUX.md) para as dependências e os limites de compatibilidade entre distribuições.
 
 ---
 
-## <a id="need-help"></a>🩺 Need Help?
-Ask questions on **Discord**: https://discord.gg/tUjTBZzMCy
+## <a id="need-help"></a>🩺 Precisa de ajuda?
+
+Entre no **[Discord da Crystal Games](https://discord.gg/WpBGsRNC7D)** para tirar dúvidas.
+
+- Site: [crystalgames.com.br](https://crystalgames.com.br/)
+- Downloads: acesse o [site da Crystal Games](https://crystalgames.com.br/)
+- Contato no Discord: **`.jogome`**
 
 ---
 
-## <a id="bugs"></a>📑 Bugs
-Found a bug? Please create an issue in our **[bug tracker](https://crystalgames.com.br/?donate/issues)**.
+## <a id="bugs"></a>📑 Problemas e correções
+
+Encontrou um problema? Relate no **[Discord da Crystal Games](https://discord.gg/WpBGsRNC7D)**. Inclua o sistema operacional, a arquitetura do cliente, os passos para reproduzir e a mensagem de erro ou o log.
 
 > [!TIP]
-> If using **Nostalrius 7.2**, **Nekiro TFS-1.5-Downgrades-7.72** OR any protocol below **860** and the walking system is **stuttering**, set  
-> [`force-new-walking-formula: true`](https://crystalgames.com.br/?donate/blob/cf7badda978de88cb3724615688e3d9da2ff4207/data/setup.otml#L21) in `data/setup.otml`.  
-> In old protocols, if item speed feels too fast, adjust  
-> [`item-ticks-per-frame: 75`](https://crystalgames.com.br/?donate/blob/cf7badda978de88cb3724615688e3d9da2ff4207/data/setup.otml#L32) in `data/setup.otml`.
+> Se utilizar **Nostalrius 7.2**, **Nekiro TFS-1.5-Downgrades-7.72** ou um protocolo inferior a **860** e houver travamentos na movimentação, configure  
+> [`force-new-walking-formula: true`](data/setup.otml) em `data/setup.otml`.  
+> Em protocolos antigos, se a animação dos itens estiver rápida demais, ajuste  
+> [`item-ticks-per-frame: 75`](data/setup.otml) em `data/setup.otml`.
 
-> if you use TVP or Nostalrius 7.72 activate the feature `g_game.enableFeature(GameTileAddThingWithStackpos)` in game_feature .
-
----
-
-## <a id="roadmap"></a>❤️ Roadmap
-| TO-DO list | Status | PR |
-|---|---|---|
-| Sound tibia 13 | ![](https://geps.dev/progress/80) | [#1098](https://crystalgames.com.br/?donate/pull/1098) |
-| Prey and tasks | ![](https://geps.dev/progress/10) | [#1380](https://crystalgames.com.br/?donate/pull/1380) |
-| Compendium | ![](https://geps.dev/progress/15) | [#1625](https://crystalgames.com.br/?donate/pull/1625) |
-| Party List | ![](https://geps.dev/progress/0) | None |
-| Proficiency | ![](https://geps.dev/progress/80) | [#1593](https://crystalgames.com.br/?donate/pull/1593) |
-| New Imbui 15x/14x | ![](https://geps.dev/progress/80) | [#1616](https://crystalgames.com.br/?donate/pull/1616) |
+> Para TVP ou Nostalrius 7.72, habilite `g_game.enableFeature(GameTileAddThingWithStackpos)` no módulo `game_features`.
 
 ---
 
-## <a id="support-protocol"></a>💯 Support Protocol
+## <a id="roadmap"></a>❤️ Planejamento
 
-| Protocol / version | Description | Required Feature | Compatibility |
+O planejamento da Crystal é acompanhado pelo [Discord](https://discord.gg/WpBGsRNC7D). Os recursos abaixo constavam do planejamento da base; o estado nesta edição deve ser confirmado durante os testes do servidor.
+
+| Recurso | Estado nesta edição | Referência |
+| --- | --- | --- |
+| Sons do Tibia 13 | A confirmar nos testes | [Arquivos de som](data/sounds/) |
+| Prey e tarefas | A confirmar nos testes | [Prey](modules/game_prey/) e [tarefas](mods/game_tasks/) |
+| Compêndio | A confirmar nos testes | [Cyclopedia](modules/game_cyclopedia/) |
+| Lista de grupo | A confirmar nos testes | [Discord da Crystal](https://discord.gg/WpBGsRNC7D) |
+| Proficiências | A confirmar nos testes | [Módulo de proficiências](modules/game_proficiency/) |
+| Imbuements 14.x/15.x | A confirmar nos testes | [Módulo de imbuements](modules/game_imbuing/) |
+
+---
+
+## <a id="support-protocol"></a>💯 Protocolos compatíveis
+
+| Protocolo / versão | Descrição | Recurso necessário | Compatibilidade |
 |---|---|---|---|
-| TFS (7.72) | Downgrade nekiro / Nostalrius | [force-new-walking-formula: true](https://crystalgames.com.br/?donate/blob/cf7badda978de88cb3724615688e3d9da2ff4207/data/setup.otml#L21) • [item-ticks-per-frame: 500](https://crystalgames.com.br/?donate/blob/cf7badda978de88cb3724615688e3d9da2ff4207/data/setup.otml#L32) | ✅ |
-| TFS 0.4 (8.6) | Fir3element | [item-ticks-per-frame: 500](https://crystalgames.com.br/?donate/blob/cf7badda978de88cb3724615688e3d9da2ff4207/data/setup.otml#L32) | ✅ |
-| TFS 1.5 (8.0 / 8.60) | Downgrade nekiro / MillhioreBT | [force-new-walking-formula: true](https://crystalgames.com.br/?donate/blob/cf7badda978de88cb3724615688e3d9da2ff4207/data/setup.otml#L21) • [item-ticks-per-frame: 500](https://crystalgames.com.br/?donate/blob/cf7badda978de88cb3724615688e3d9da2ff4207/data/setup.otml#L32) | ✅ |
-| TFS 1.4.2 (10.98) | Release Otland |  | ✅ |
-| TFS 1.6 (13.10) | Main repo otland (2024) | [See wiki](https://crystalgames.com.br/?donate/wiki/Tutorial-to-Use-OTC-in-TFS-main) | ✅ |
-| Canary (13.21 / 13.32 / 13.40) | OpenTibiaBr | [See Wiki](https://github.com/opentibiabr/otclient/wiki/Tutorial-to-use-OTC-in-Canary-main) | ✅ |
-| Canary (14.00 ~ 14.12) | OpenTibiaBr | [See Wiki](https://github.com/opentibiabr/otclient/wiki/Tutorial-to-use-OTC-in-Canary-main) | ✅ |
-| Canary (15.00 ~ 15.24) | OpenTibiaBr | [See Wiki](https://github.com/opentibiabr/otclient/wiki/Tutorial-to-use-OTC-in-Canary-main) | ✅ |
+| TFS (7.72) | Versão anterior de Nekiro / Nostalrius | [force-new-walking-formula: true](data/setup.otml) • [item-ticks-per-frame: 500](data/setup.otml) | ✅ |
+| TFS 0.4 (8.6) | Fir3element | [item-ticks-per-frame: 500](data/setup.otml) | ✅ |
+| TFS 1.5 (8.0 / 8.60) | Versão anterior de Nekiro / MillhioreBT | [force-new-walking-formula: true](data/setup.otml) • [item-ticks-per-frame: 500](data/setup.otml) | ✅ |
+| TFS 1.4.2 (10.98) | Versão do Otland |  | ✅ |
+| TFS 1.6 (13.10) | Repositório principal do Otland (2024) | [Orientações no Discord](https://discord.gg/WpBGsRNC7D) | ✅ |
+| Canary (13.21 / 13.32 / 13.40) | OpenTibiaBr | [Orientações no Discord](https://discord.gg/WpBGsRNC7D) | ✅ |
+| Canary (14.00 ~ 14.12) | OpenTibiaBr | [Orientações no Discord](https://discord.gg/WpBGsRNC7D) | ✅ |
+| Canary (15.00 ~ 15.24) | OpenTibiaBr | [Orientações no Discord](https://discord.gg/WpBGsRNC7D) | ✅ |
 
 ---
 
-## <a id="license"></a>©️ License
-OTClient is made available under the **MIT License** — you are free to use it for commercial, non-commercial, closed or open projects.  
-See: [MIT License](http://opensource.org/licenses/MIT)
+## <a id="license"></a>©️ Licença
+
+O OTClient é disponibilizado sob a **licença MIT**, que permite seu uso em projetos comerciais ou não comerciais, abertos ou fechados, conforme os termos da licença. Preserve os avisos de direitos autorais e o texto da licença nas cópias distribuídas.
+
+Consulte o arquivo [LICENSE](LICENSE).
 
 ---
 
-## <a id="contributors"></a>❤️ Contributors
-If you are interested in supporting the project, donate here:  
-**[PayPal](https://www.paypal.com/donate/?business=CV9D5JF8E46LY&no_recurring=0&item_name=Thank+you+very+much+for+your+donation.&currency_code=BRL)**
+## <a id="contributors"></a>❤️ Colaboradores
+
+Esta edição é mantida pela **Crystal Games**. Contato no Discord: **`.jogome`**.
+
+Para apoiar e acompanhar o projeto, visite o [site da Crystal Games](https://crystalgames.com.br/) e participe do [Discord da comunidade](https://discord.gg/WpBGsRNC7D).
+
+Os créditos aos autores do OTClient, dos módulos e das integrações foram mantidos nas seções acima. As demonstrações externas pertencem às referências da base original.
