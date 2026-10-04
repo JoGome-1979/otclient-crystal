@@ -1,7 +1,7 @@
 
 <h1>
   <img src="https://crystalgames.com.br/plugins/theme-canary/themes/canary/images/header/tibia-logo-artwork-top.gif" width="32" alt="logo"/>
-  OTClient - Redemption
+  Crystal Ot Client - Redemption
 </h1>
 
 [![Discord Shield](https://discordapp.com/api/guilds/888062548082061433/widget.png?style=shield)](https://discord.gg/tUjTBZzMCy)
