@@ -10,7 +10,7 @@
 ---
 
 ## <a id="table-of-contents"></a>📋 Sumário
-1. ![Logo](https://raw.githubusercontent.com/mehah/otclient/main/src/otcicon.ico)  [O que é o OTClient?](#what-is-otclient)
+1. ![Logo](https://raw.githubusercontent.com/JoGome-1979/otclient-crystal/refs/heads/main/src/otcicon.ico)  [O que é o OTClient?](#what-is-otclient)
 2. 🚀 [Recursos](#features)
 3. <img height="16" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/android/android.png"/> [O Projeto Mobile](#the-mobile-project)
 4. 🔨 [Compilação](#compiling)
