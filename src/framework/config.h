@@ -58,6 +58,6 @@ static constexpr float DEFAULT_DISPLAY_DENSITY = 1.f;
 #define RPC_LARGE_TEXT "Crystal MMORPG" // Large Text (Text showed at tooltip large image)
 // Up to two external buttons shown to other Discord users on the activity card.
 #define RPC_BUTTON_DISCORD_LABEL "Discord"
-#define RPC_BUTTON_DISCORD_URL "https://discord.gg/WpBGsRNC7D"
+#define RPC_BUTTON_DISCORD_URL "https://discord.gg/p55CbkCdEm"
 #define RPC_BUTTON_REGISTER_LABEL "Cadastro"
-#define RPC_BUTTON_REGISTER_URL "https://crystalgames.com.br/?account/create"
+#define RPC_BUTTON_REGISTER_URL "https://crystalgames.com.br"

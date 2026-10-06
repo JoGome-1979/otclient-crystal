@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.24)
+
 # Creates a clean updater payload from the authoritative runtime sources.
 # Resources are refreshed; unrelated platform binaries remain untouched.
 

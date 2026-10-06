@@ -169,6 +169,7 @@ void SoundSource::update()
 
 void SoundSource::setEffect(const SoundEffectPtr soundEffect)
 {
+#ifndef __EMSCRIPTEN__
     if (!soundEffect || m_sourceId == 0)
         return;
 
@@ -178,10 +179,14 @@ void SoundSource::setEffect(const SoundEffectPtr soundEffect)
     if (err != AL_NO_ERROR) {
         g_logger.error("Failed to set effect on source: {}", alGetString(err));
     }
+#else
+    (void)soundEffect;
+#endif
 }
 
 void SoundSource::removeEffect()
 {
+#ifndef __EMSCRIPTEN__
     if (m_effectSlot != 0) {
         m_effectSlot = 0;
         if (m_sourceId != 0) {
@@ -192,4 +197,5 @@ void SoundSource::removeEffect()
             }
         }
     }
+#endif
 }

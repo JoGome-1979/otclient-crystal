@@ -1,4 +1,4 @@
-local DONATION_URL = "https://crystalgames.com.br/?donate"
+local DONATION_URL = "https://crystalgames.com.br/points"
 local GAME_SHOP = nil
 local SECOND_CURRENCY_ENABLED = false
 
@@ -112,10 +112,11 @@ function gameShopInitialize()
 	}
 	
 	addCategory(nil, "Premium Time", 20, CATEGORY_PREMIUM)
-	addItem("Premium Time", "30 Days of Premium Time", "30_days", 250, false, 30, PREMIUM_DESCRIPTION)
-	addItem("Premium Time", "90 Days of Premium Time", "90_days", 750, false, 90, PREMIUM_DESCRIPTION)
-	addItem("Premium Time", "180 Days of Premium Time", "180_days", 1500, false, 180, PREMIUM_DESCRIPTION)
-	addItem("Premium Time", "360 Days of Premium Time", "360_days", 3000, false, 360, PREMIUM_DESCRIPTION)
+	addItem("Premium Time", "7 Dias de Premium", "7_days", 100, false, 7, PREMIUM_DESCRIPTION)
+	addItem("Premium Time", "30 Dias de Premium", "30_days", 300, false, 30, PREMIUM_DESCRIPTION)
+	addItem("Premium Time", "90 Dias de Premium", "90_days", 750, false, 90, PREMIUM_DESCRIPTION)
+	addItem("Premium Time", "180 Dias de Premium", "180_days", 1500, false, 180, PREMIUM_DESCRIPTION)
+	addItem("Premium Time", "365 Dias de Premium", "365_days", 3000, false, 365, PREMIUM_DESCRIPTION)
 
 	addCategory(nil, "Rookgaard Items", 12, CATEGORY_ITEM)
 	addItem("Rookgaard Items", "Health Potion", 7618, 6, false, 5, HEALTH_POTION_DESCRIPTION)

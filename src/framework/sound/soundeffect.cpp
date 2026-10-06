@@ -21,6 +21,24 @@
  */
 
 #include "soundeffect.h"
+#ifdef __EMSCRIPTEN__
+// Emscripten OpenAL provides playback but does not implement ALC_EXT_EFX.
+// Keep the Lua API available without calling unsupported effect functions.
+SoundEffect::SoundEffect(ALCdevice* device) : m_device(device) {}
+SoundEffect::~SoundEffect() = default;
+void SoundEffect::init(ALCdevice* device) { m_device = device; }
+void SoundEffect::setPreset(const std::string&) {}
+void SoundEffect::setReverbDensity(float) const {}
+void SoundEffect::setReverbDiffusion(float) const {}
+void SoundEffect::setReverbGain(float) const {}
+void SoundEffect::setReverbGainHF(float) const {}
+void SoundEffect::setReverbGainLF(float) const {}
+void SoundEffect::setReverbDecayTime(float) const {}
+void SoundEffect::setReverbDecayHfRatio(float) const {}
+void SoundEffect::setReverbDecayLfRatio(float) const {}
+void SoundEffect::setReverbReflectionsGain(float) const {}
+void SoundEffect::setReverbReflectionsDelay(float) const {}
+#else
 #include "soundmanager.h"
 
 #include <framework/core/logger.h>
@@ -417,3 +435,5 @@ void SoundEffect::setReverbReflectionsDelay(const float reflectionsDelay) const 
     }
     alAuxiliaryEffectSloti(m_effectSlot, AL_EFFECTSLOT_EFFECT, static_cast<ALint>(m_effectId));
 }
+
+#endif // __EMSCRIPTEN__

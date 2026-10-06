@@ -356,10 +356,14 @@ SoundEffectPtr SoundManager::createSoundEffect()
 
 bool SoundManager::isEaxEnabled()
 {
+#ifdef __EMSCRIPTEN__
+    return false;
+#else
     if (alGetEnumValue("AL_EFFECT_EAXREVERB") != 0) {
         return true;
     }
     return false;
+#endif
 }
 
 #ifdef FRAMEWORK_PROTOBUF

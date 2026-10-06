@@ -30,8 +30,10 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
+#ifndef __EMSCRIPTEN__
 #include <AL/efx-presets.h>
 #include <AL/efx.h>
+#endif
 
 class SoundManager;
 class SoundSource;

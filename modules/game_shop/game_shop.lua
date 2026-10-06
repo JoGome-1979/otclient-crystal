@@ -1,3 +1,13 @@
+local function resolveShopImage(id)
+    local path = '/game_shop/images/' .. tostring(id):gsub('^/+', '')
+    if g_resources.fileExists(path) then return path end
+    if not path:lower():match('%.png$') and g_resources.fileExists(path .. '.png') then
+        return path .. '.png'
+    end
+    g_logger.warning('Shop image unavailable: ' .. path)
+    return '/game_store/images/dynamic-image-error.png'
+end
+
 local DONATION_URL = nil
 local GAME_SHOP_CODE = 201
 
@@ -420,7 +430,7 @@ function showOffers(id)
 
             if type(offersCache[i].id) == "string" then
                 image:show()
-                image:setImageSource("/game_shop/images/" .. offersCache[i].id)
+                image:setImageSource(resolveShopImage(offersCache[i].id))
             elseif type(offersCache[i].id) == "number" then
                 widget.offerCategoryId = categoryId
                 if categoryId == CATEGORY_ITEM then
@@ -526,7 +536,7 @@ function updateDescription(self)
     mount:hide()
     if type(self.data.id) == "string" then
         image:show()
-        image:setImageSource("/game_shop/images/" .. self.data.id)
+        image:setImageSource(resolveShopImage(self.data.id))
     elseif type(self.data.id) == "number" then
         local categoryId = self.offerCategoryId or self.data.offerCategoryId
         if table.contains({CATEGORY_ITEM, CATEGORY_EXTRAS}, categoryId) then

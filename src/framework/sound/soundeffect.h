@@ -23,7 +23,9 @@
 #define SOUNDEFFECT_H
 
 #include <AL/alc.h>
+#ifndef __EMSCRIPTEN__
 #include <AL/efx-presets.h>
+#endif
 #include <framework/luaengine/luaobject.h>
 
 class SoundEffect final : public LuaObject
@@ -51,7 +53,9 @@ private:
     friend class SoundManager;
     friend class SoundSource;
 
+#ifndef __EMSCRIPTEN__
     void loadPreset(const EFXEAXREVERBPROPERTIES& preset);
+#endif
 
     ALCdevice* m_device;
 

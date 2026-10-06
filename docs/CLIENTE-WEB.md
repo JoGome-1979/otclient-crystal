@@ -69,3 +69,8 @@ O servidor de teste HTTP nao resolve a ponte WebSocket do jogo.
 A configuracao atual incorpora data/modules/mods e reserva 1 GiB de memoria;
 reduzir carga inicial e validar updater/recursos em navegador e trabalho posterior.
 Nenhuma alteracao ou publicacao na VPS e realizada automaticamente.
+
+O OpenAL do Emscripten nao implementa ALC_EXT_EFX. No navegador, a API Lua
+de SoundEffect permanece disponivel, mas presets de reverberacao e filtros
+auxiliares nao sao aplicados. Reproducao comum de audio permanece habilitada;
+os builds nativos mantem sua implementacao EFX.

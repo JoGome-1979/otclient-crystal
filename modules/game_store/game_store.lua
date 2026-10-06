@@ -27,13 +27,13 @@ local currentIndex = 1
 GameStore = {}
 -- == Enums ==--
 GameStore.website = {
-    WEBSITE_GETCOINS = "https://crystalgames.com.br/?donate",
-    IMAGES_URL =  "http://crystalgames.com.br/images/store/", --./game_store --https://docs.opentibiabr.com/opentibiabr/downloads/website-applications/applications#store-for-client-13-1
+    WEBSITE_GETCOINS = "https://crystalgames.com.br/points",
+    IMAGES_URL =  "https://crystalgames.com.br/images/store/", --./game_store --https://docs.opentibiabr.com/opentibiabr/downloads/website-applications/applications#store-for-client-13-1
 }
 
 GameStore.CoinType = {
-    Coin = 0,
-    Transferable = 1
+    Coin = 1,
+    Transferable = 0
 }
 
 GameStore.ClientOfferTypes = {
@@ -118,33 +118,31 @@ local function getPageLabelHistory()
 end
 
 local function setImagenHttp(widget, url, isIcon)
-    if GameStore.website.IMAGES_URL then
-        HTTP.downloadImage(GameStore.website.IMAGES_URL .. url, function(path, err)
-            if err then
-                g_logger.warning("HTTP error: " .. err .. " - " .. GameStore.website.IMAGES_URL .. url)
-                if isIcon then
-                    widget:setIcon("/game_store/images/dynamic-image-error")
-                else
-                    widget:setImageSource("/game_store/images/dynamic-image-error")
-                    widget:setImageFixedRatio(false)
-                end
-                return
-            end
-            if isIcon then
-                widget:setIcon(path)
-            else
-                widget:setImageSource(path)
-            end
-        end)
-    else
-        if not g_resources.fileExists("/game_store/images/" .. url) then
-            widget:setImageSource("/game_store/images/dynamic-image-error")
-            widget:setImageFixedRatio(false)
-        else
-            widget:setImageSource("/game_store/images/" .. url)
-        end
-
+    local relative = tostring(url or ''):gsub('^/+', '')
+    local localPath = '/game_store/images/' .. relative
+    local function apply(path)
+        if widget:isDestroyed() then return end
+        if isIcon then widget:setIcon(path) else widget:setImageSource(path) end
     end
+    if g_resources.fileExists(localPath) then
+        apply(localPath)
+        return
+    end
+    local base = GameStore.website.IMAGES_URL
+    if not base or base == '' then
+        apply('/game_store/images/dynamic-image-error')
+        return
+    end
+    local remoteUrl = base:gsub('/+$', '') .. '/' .. relative
+    HTTP.downloadImage(remoteUrl, function(path, err)
+        if widget:isDestroyed() then return end
+        if err then
+            g_logger.warning('Store image unavailable: ' .. remoteUrl .. ' - ' .. tostring(err))
+            apply('/game_store/images/dynamic-image-error')
+            return
+        end
+        apply(path)
+    end)
 end
 
 local STORE_ICON_PATH = "/game_store/images/store-icons-inline"
