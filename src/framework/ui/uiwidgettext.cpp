@@ -365,7 +365,7 @@ void UIWidget::onFontChange(const std::string_view font) { callLuaField("onFontC
 
 void UIWidget::setText(const std::string_view text, const bool dontFireLuaCall)
 {
-    std::string _text{ text.data() };
+    std::string _text = stdext::ui_text_to_latin1(text);
     if (hasProp(PropTextOnlyUpperCase))
         stdext::toupper(_text);
 
@@ -404,7 +404,7 @@ void UIWidget::setColoredText(const std::string_view coloredText, bool dontFireL
     static const std::regex expColor(R"(\{([^\}]+),[ ]*([^\}]+)\})");
     static const std::regex expEvent(R"(\[text-event\](.*?)\[/text-event\])");
 
-    std::string _text{ coloredText.data() };
+    std::string _text = stdext::ui_text_to_latin1(coloredText);
     std::string text;
     text.reserve(coloredText.size());
 

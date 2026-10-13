@@ -21,6 +21,7 @@
  */
 #include "graphics/paintershaderprogram.h"
 #include <framework/core/application.h>
+#include <framework/discord/discord.h>
 #include <framework/core/config.h>
 #include <framework/core/configmanager.h>
 #include <framework/core/eventdispatcher.h>
@@ -115,6 +116,17 @@ void Application::registerLuaFunctions()
         }
         return ret;
     });
+
+#if !defined(ANDROID) && ENABLE_DISCORD_RPC == 1
+    g_lua.registerSingletonClass("g_discord");
+    g_lua.bindSingletonFunction("g_discord", "getIdentityApplicationId", &Discord::getIdentityApplicationId, &g_discord);
+    g_lua.bindSingletonFunction("g_discord", "requestIdentityAuthorization", &Discord::requestIdentityAuthorization, &g_discord);
+    g_lua.bindSingletonFunction("g_discord", "getIdentityState", &Discord::getIdentityState, &g_discord);
+    g_lua.bindSingletonFunction("g_discord", "getIdentityErrorCode", &Discord::getIdentityErrorCode, &g_discord);
+    g_lua.bindSingletonFunction("g_discord", "getIdentityUserId", &Discord::getIdentityUserId, &g_discord);
+    g_lua.bindSingletonFunction("g_discord", "takeIdentityCode", &Discord::takeIdentityCode, &g_discord);
+    g_lua.bindSingletonFunction("g_discord", "cancelIdentityAuthorization", &Discord::cancelIdentityAuthorization, &g_discord);
+#endif
 
     // Platform
     g_lua.registerSingletonClass("g_platform");

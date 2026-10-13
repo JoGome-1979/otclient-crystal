@@ -138,7 +138,9 @@ MessageSettings = {
     },
     lootPremium = {
         color = TextColors.white,
+        consoleTab = 'Loot',
         screenTarget = 'middleCenterLabel',
+        consoleOption = 'showInfoMessagesInConsole',
         colored = true
     },
 }
@@ -173,8 +175,6 @@ MessageTypes = {
     [MessageModes.Spell] = MessageSettings.consoleYellow,
     [MessageModes.RVRChannel] = MessageSettings.channelWhite,
     [MessageModes.RVRContinue] = MessageSettings.consoleYellow,
-    [MessageModes.LootPremium] = MessageSettings.lootPremium,
-
     [MessageModes.GamemasterBroadcast] = MessageSettings.consoleRed,
 
     [MessageModes.DamageDealed] = MessageSettings.statusOwn,
@@ -291,6 +291,9 @@ function displayMessage(mode, text)
             return
         elseif msgtype == MessageSettings.loot or msgtype == MessageSettings.valuableLoot or msgtype == MessageSettings.lootPremium then
             local coloredText = ItemsDatabase.setColorLootMessage(text)
+            if msgtype == MessageSettings.lootPremium then
+                label:setColor(msgtype.color)
+            end
             label:setColoredText(coloredText)
         else
             label:setText(text)

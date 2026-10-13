@@ -903,7 +903,7 @@ void ProtocolGame::parseStore(const InputMessagePtr& msg) const
 
     for (auto i = 0; i < categoryCount; ++i) {
         StoreCategory category;
-        category.name = msg->getString();
+        category.name = stdext::server_text_to_latin1(msg->getString());
 
         if (g_game.getClientVersion() < 1291) {
             msg->getString();
@@ -920,7 +920,7 @@ void ProtocolGame::parseStore(const InputMessagePtr& msg) const
             category.icons.push_back(msg->getString());
         }
 
-        category.parent = msg->getString();
+        category.parent = stdext::server_text_to_latin1(msg->getString());
         categories.push_back(category);
     }
 
@@ -1007,12 +1007,12 @@ void ProtocolGame::parseCompleteStorePurchase(const InputMessagePtr& msg) const
 {
     if (g_game.getClientVersion() >= 1291) {
         msg->getU8();
-        const auto& purchaseStatus = msg->getString();
+        const auto& purchaseStatus = stdext::server_text_to_latin1(msg->getString());
         g_lua.callGlobalField("g_game", "onParseStoreGetPurchaseStatus", purchaseStatus);
     } else {
         msg->getU8(); // not used
 
-        const auto& message = msg->getString();
+        const auto& message = stdext::server_text_to_latin1(msg->getString());
         const uint32_t coins = msg->getU32();
         const uint32_t transferableCoins = msg->getU32();
         g_lua.callGlobalField("g_game", "onParseStoreGetCoin", coins, transferableCoins);
@@ -1047,14 +1047,14 @@ void ProtocolGame::parseStoreTransactionHistory(const InputMessagePtr& msg) cons
                 amount = static_cast<int32_t>(rawAmount);
             }
             const uint8_t coinType = msg->getU8(); // 0 = transferable tibia coin, 1 = normal tibia coin
-            const auto& productName = msg->getString();
+            const auto& productName = stdext::server_text_to_latin1(msg->getString());
             msg->getU8(); //details
             historyData.emplace_back(time, mode, amount, coinType, productName);
         } else {
             const uint32_t time = msg->getU32();
             const uint8_t productType = msg->getU8();
             const uint32_t coinChange = msg->getU32();
-            const auto& productName = msg->getString();
+            const auto& productName = stdext::server_text_to_latin1(msg->getString());
             historyData.emplace_back(time, productType, coinChange, 1, productName);
         }
     }
@@ -1066,13 +1066,13 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
 {
     if (g_game.getClientVersion() >= 1291) {
         StoreData storeData;
-        storeData.categoryName = msg->getString();
+        storeData.categoryName = stdext::server_text_to_latin1(msg->getString());
         storeData.redirectId = msg->getU32();
 
         msg->getU8(); //  -- sort by 0 - most popular, 1 - alphabetically, 2 - newest
         const uint8_t dropMenuShowAll = msg->getU8();
         for (auto i = 0; i < dropMenuShowAll; ++i) {
-            const auto& menu = msg->getString();
+            const auto& menu = stdext::server_text_to_latin1(msg->getString());
             storeData.menuFilter.push_back(menu);
         }
 
@@ -1083,7 +1083,7 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
             const uint16_t disableReasonsSize = msg->getU16();
 
             for (auto i = 0; i < disableReasonsSize; ++i) {
-                const auto& reason = msg->getString();
+                const auto& reason = stdext::server_text_to_latin1(msg->getString());
                 storeData.disableReasons.push_back(reason);
             }
         }
@@ -1092,7 +1092,7 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
         if (storeData.categoryName == "Home") {
             for (auto i = 0; i < offersCount; ++i) {
                 HomeOffer offer;
-                offer.name = msg->getString();
+                offer.name = stdext::server_text_to_latin1(msg->getString());
                 offer.unknownByte = msg->getU8();
                 offer.id = msg->getU32();
                 offer.unknownU16 = msg->getU16();
@@ -1156,7 +1156,7 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
 
         for (auto i = 0; i < offersCount; ++i) {
             StoreOffer offer;
-            offer.name = msg->getString();
+            offer.name = stdext::server_text_to_latin1(msg->getString());
 
             const uint8_t subOffersCount = msg->getU8();
             for (auto j = 0; j < subOffersCount; ++j) {
@@ -1235,14 +1235,14 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
         g_lua.callGlobalField("g_game", "onParseStoreCreateProducts", storeData);
     } else {
         StoreData storeData;
-        storeData.categoryName = msg->getString(); // categoryName
+        storeData.categoryName = stdext::server_text_to_latin1(msg->getString()); // categoryName
 
         const uint16_t offersCount = msg->getU16();
         for (auto i = 0; i < offersCount; ++i) {
             StoreOffer offer;
             offer.id = msg->getU32(); // offerId
-            offer.name = msg->getString(); // offerName
-            offer.description = msg->getString(); // offerDescription
+            offer.name = stdext::server_text_to_latin1(msg->getString()); // offerName
+            offer.description = stdext::server_text_to_latin1(msg->getString()); // offerDescription
             offer.price = msg->getU32(); // price
 
             const uint8_t highlightState = msg->getU8();
@@ -1256,7 +1256,7 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
 
             offer.disabled = msg->getU8() == 1;
             if (g_game.getFeature(Otc::GameIngameStoreHighlights) && offer.disabled) {
-                offer.reasonIdDisable = msg->getString(); // disabledReason
+                offer.reasonIdDisable = stdext::server_text_to_latin1(msg->getString()); // disabledReason
             }
 
             const uint8_t iconCount = msg->getU8();
@@ -1268,14 +1268,14 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
 
             for (auto j = 0; j < subOffersCount; ++j) {
                 SubOffer subOffer;
-                subOffer.name = msg->getString(); // name
-                subOffer.description = msg->getString(); // description
+                subOffer.name = stdext::server_text_to_latin1(msg->getString()); // name
+                subOffer.description = stdext::server_text_to_latin1(msg->getString()); // description
 
                 const uint8_t subIconsCount = msg->getU8();
                 for (auto k = 0; k < subIconsCount; ++k) {
                     subOffer.icons.push_back(msg->getString()); // icon
                 }
-                subOffer.parent = msg->getString(); // serviceType
+                subOffer.parent = stdext::server_text_to_latin1(msg->getString()); // serviceType
                 offer.subOffers.push_back(subOffer);
             }
 
@@ -1289,7 +1289,7 @@ void ProtocolGame::parseStoreOffers(const InputMessagePtr& msg)
 void ProtocolGame::parseStoreError(const InputMessagePtr& msg) const
 {
     const uint8_t errorType = msg->getU8();
-    const auto& message = msg->getString();
+    const auto& message = stdext::server_text_to_latin1(msg->getString());
 
     g_lua.callGlobalField("g_game", "onParseStoreError", message, errorType);
 }
@@ -4514,7 +4514,7 @@ Position ProtocolGame::getPosition(const InputMessagePtr& msg)
 void ProtocolGame::parseShowDescription(const InputMessagePtr& msg)
 {
     const uint32_t offerId = msg->getU32();
-    const auto& offerdescription = msg->getString();
+    const auto& offerdescription = stdext::server_text_to_latin1(msg->getString());
 
     g_lua.callGlobalField("g_game", "onParseStoreOfferDescriptions", offerId, offerdescription);
 }

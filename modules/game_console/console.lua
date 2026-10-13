@@ -259,6 +259,26 @@ function consoleController:onInit()
         consoleTextEdit:clearText()
     end, consolePanel)
 
+    consoleTextEdit.onKeyPress = function(self, keyCode, keyboardModifiers)
+        local pasteModifiers = bit.bor(KeyboardCtrlModifier, KeyboardPrimaryModifier)
+        if keyCode ~= KeyV or bit.band(keyboardModifiers, pasteModifiers) == 0 then
+            return false
+        end
+
+        local text = g_window.getClipboardText()
+        g_logger.info('[ChatPaste] Ctrl+V received; clipboard bytes: ' .. #(text or ''))
+        if not text or text == '' then
+            modules.game_textmessage.displayStatusMessage(
+                'O cliente recebeu a area de transferencia vazia.')
+            return true
+        end
+
+        self:setText(text)
+        self:setCursorPos(-1)
+        return true
+    end
+    g_logger.info('[ChatPaste] Chat input paste handler loaded.')
+
     -- apply buttom functions after loaded
     consoleTabBar:setNavigation(consolePanel:getChildById('prevChannelButton'),
         consolePanel:getChildById('nextChannelButton'))

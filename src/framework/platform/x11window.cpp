@@ -30,6 +30,7 @@
 #include <X11/Xresource.h>
 #include <X11/cursorfont.h>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <unistd.h>
@@ -1408,41 +1409,64 @@ Size X11Window::getDisplaySize()
 
 std::string X11Window::getClipboardText()
 {
-    Atom clipboard = XInternAtom(m_display, "CLIPBOARD", False);
-    Window ownerWindow = XGetSelectionOwner(m_display, clipboard);
+    const Atom clipboard = XInternAtom(m_display, "CLIPBOARD", False);
+    const Window ownerWindow = XGetSelectionOwner(m_display, clipboard);
     if (ownerWindow == m_window)
         return m_clipboardText;
+    if (ownerWindow == X11None)
+        return {};
 
-    std::string clipboardText;
-    if (ownerWindow != X11None) {
-        XConvertSelection(m_display, clipboard, XA_STRING, XA_PRIMARY, ownerWindow, CurrentTime);
+    const Atom property = XInternAtom(m_display, "OTCLIENT_CLIPBOARD", False);
+    const Atom utf8 = XInternAtom(m_display, "UTF8_STRING", False);
+    const Atom targets[] = { utf8, XA_STRING };
+    for (const Atom target : targets) {
+        XDeleteProperty(m_display, m_window, property);
+        // Selection data and SelectionNotify must be sent to our window.
+        XConvertSelection(m_display, clipboard, target, property, m_window, CurrentTime);
         XFlush(m_display);
 
-        // hack to wait SelectioNotify event, otherwise we will get wrong clipboard pastes
-        // TODO: fix this in a correct way
-        stdext::millisleep(100);
+        bool notified = false;
+        XEvent event{};
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+        while (std::chrono::steady_clock::now() < deadline) {
+            if (XCheckTypedWindowEvent(m_display, m_window, SelectionNotify, &event)) {
+                if (event.xselection.selection == clipboard && event.xselection.target == target) {
+                    notified = true;
+                    break;
+                }
+            } else {
+                stdext::millisleep(5);
+            }
+        }
 
-        // check for data
-        Atom type;
-        int format;
-        ulong len, bytesLeft;
-        char* data;
-        XGetWindowProperty(m_display, ownerWindow,
-            XA_PRIMARY, 0, 10000000L, 0, XA_STRING,
-            &type,
-            &format,
-            &len,
-            &bytesLeft,
-            (uint8_t**)&data);
-        if (len > 0) {
-            if (stdext::is_valid_utf8(data))
-                clipboardText = stdext::utf8_to_latin1(data);
-            else
-                clipboardText = data;
+        if (!notified || event.xselection.property == X11None) {
+            XDeleteProperty(m_display, m_window, property);
+            continue;
+        }
+
+        Atom type = X11None;
+        int format = 0;
+        unsigned long len = 0, bytesLeft = 0;
+        unsigned char* data = nullptr;
+        const int result = XGetWindowProperty(m_display, m_window, property,
+            0, 262144L, True, AnyPropertyType, &type, &format, &len, &bytesLeft, &data);
+
+        std::string text;
+        if (result == Success && format == 8 && bytesLeft == 0 && data &&
+            (type == utf8 || type == XA_STRING)) {
+            text.assign(reinterpret_cast<const char*>(data), len);
+        }
+        if (data)
+            XFree(data);
+        XDeleteProperty(m_display, m_window, property);
+
+        if (!text.empty()) {
+            if (type == utf8 || stdext::is_valid_utf8(text))
+                return stdext::utf8_to_latin1(text);
+            return text;
         }
     }
-
-    return clipboardText;
+    return {};
 }
 
 std::string X11Window::getPlatformType()

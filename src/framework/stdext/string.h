@@ -59,6 +59,8 @@ namespace stdext
     [[nodiscard]] std::string latin1_to_utf8(std::string_view src);
     /// Decode UTF-8 server text for the Latin-1 UI; preserve legacy byte strings.
     [[nodiscard]] std::string server_text_to_latin1(std::string_view src);
+    /// Normalize representable UTF-8 UI text without losing unsupported characters.
+    [[nodiscard]] std::string ui_text_to_latin1(std::string_view src);
 
 #ifdef WIN32
     [[nodiscard]] std::wstring utf8_to_utf16(std::string_view src);

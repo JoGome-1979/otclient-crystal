@@ -390,6 +390,14 @@ local function tryLogin(charInfo, tries)
 
     CharacterList.hide()
 
+    local allowed, accessMessage = EnterGame.validateDiscordSession()
+    if not allowed then
+        errorBox = EnterGame.displayLoginError(accessMessage)
+        errorBox.onOk = function() errorBox = nil; EnterGame.show() end
+        return
+    end
+    if G.discordIdentity then G.discordSessionUsed = true end
+
     g_game.loginWorld(G.account, G.password, charInfo.worldName, charInfo.worldHost, charInfo.worldPort,
                       charInfo.characterName, G.authenticatorToken, G.sessionKey)
 
@@ -471,6 +479,7 @@ local function resendWait()
 end
 
 local function onLoginWait(message, time)
+    if G.discordIdentity then G.discordSessionUsed = false end
     CharacterList.destroyLoadBox()
 
     waitingWindow = g_ui.displayUI('waitinglist')
@@ -486,7 +495,7 @@ end
 
 function onGameLoginError(message)
     CharacterList.destroyLoadBox()
-    errorBox = displayErrorBox(tr('Login Error'), message)
+    errorBox = EnterGame.displayLoginError(message)
     errorBox.onOk = function()
         errorBox = nil
         CharacterList.showAgain()

@@ -1263,6 +1263,10 @@ bool ResourceManager::updateExecutable(std::string fileName)
         return false;
     }
 #endif
+#ifdef WIN32
+    // Restart the downloaded executable directly; do not relaunch the old client.
+    m_pendingBinaryPath = downloadedPath;
+#endif
     g_logger.info("Updated executable installed: {}", newBinary);
     return true;
 #endif
@@ -1355,7 +1359,7 @@ bool ResourceManager::launchCorrect(const std::vector<std::string>& args)
             updateArgs.assign(args.begin() + 1, args.end());
         if (g_platform.spawnProcess(newestUpdate.string(), updateArgs))
             return true;
-        g_logger.error("Unable to launch downloaded executable update: {}", newestUpdate.string());
+        g_logger.fatal("Nao foi possivel iniciar a atualizacao: {}. Verifique o bloqueio de Controle de Aplicativo do Windows. O cliente nao repetira o download.", newestUpdate.string());
         return false;
     }
 

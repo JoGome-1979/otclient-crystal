@@ -63,13 +63,26 @@ bool BaseConnection::Open()
     setsockopt(self->sock, SOL_SOCKET, SO_NOSIGPIPE, &optval, sizeof(optval));
 #endif
 
-    for (int pipeNum = 0; pipeNum < 10; ++pipeNum) {
-        snprintf(
-          PipeAddr.sun_path, sizeof(PipeAddr.sun_path), "%s/discord-ipc-%d", tempPath, pipeNum);
-        int err = connect(self->sock, (const sockaddr*)&PipeAddr, sizeof(PipeAddr));
-        if (err == 0) {
-            self->isOpen = true;
-            return true;
+    // Native Discord uses the runtime root; Flatpak isolates its IPC socket.
+    const char* runtimePath = getenv("XDG_RUNTIME_DIR");
+    const char* subdirectories[] = {"", "/app/com.discordapp.Discord",
+                                    "/snap.discord", "/snap.discord-canary",
+                                    "/snap.discord-ptb"};
+    for (const char* subdirectory : subdirectories) {
+        const char* basePath = subdirectory[0] ? runtimePath : tempPath;
+        if (!basePath || !basePath[0]) {
+            continue;
+        }
+        for (int pipeNum = 0; pipeNum < 10; ++pipeNum) {
+            const int length = snprintf(PipeAddr.sun_path, sizeof(PipeAddr.sun_path),
+                                        "%s%s/discord-ipc-%d", basePath, subdirectory, pipeNum);
+            if (length < 0 || static_cast<size_t>(length) >= sizeof(PipeAddr.sun_path)) {
+                continue;
+            }
+            if (connect(self->sock, reinterpret_cast<const sockaddr*>(&PipeAddr), sizeof(PipeAddr)) == 0) {
+                self->isOpen = true;
+                return true;
+            }
         }
     }
     self->Close();

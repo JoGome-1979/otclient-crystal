@@ -44,7 +44,7 @@ public:
     virtual void poll();
     virtual void exit();
     virtual void close();
-    virtual void restart();
+    virtual bool restart();
 
     void setName(const std::string_view name) {
         m_appName = name;

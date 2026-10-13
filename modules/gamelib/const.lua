@@ -242,7 +242,13 @@ TextColors = {
     -- blue2     = '#3264c8',
     -- blue3     = '#0096c8',
     white = '#ffffff', -- '#bebebe'
-    grey = '#AAAAAA'
+    grey = '#AAAAAA',
+    black = '#000000',
+    purple = '#c800c8',
+    pink = '#ff00ff',
+    brown = '#a0522d',
+    gold = '#ffd700',
+    silver = '#c0c0c0'
 }
 
 MessageModes = {
@@ -307,7 +313,7 @@ MessageModes = {
     Potion = 56,
     ValuableLoot = 57,
     LootPremium = 59,
-    Last = 58,
+    Last = 60,
     Invalid = 255
 }
 

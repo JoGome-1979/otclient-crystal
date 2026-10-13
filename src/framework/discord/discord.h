@@ -23,6 +23,7 @@
 #pragma once
 
 #include <framework/config.h>
+#include <string>
 
 #ifndef ANDROID
 #if ENABLE_DISCORD_RPC == 1
@@ -33,6 +34,14 @@ class Discord
 {
 public:
     void init(std::function<bool()>& canUpdate, std::function<void(std::string&)>& onUpdate);
+
+    std::string getIdentityApplicationId() { return RPC_API_KEY; }
+    bool requestIdentityAuthorization(const std::string& redirectUri) { return Discord_RequestIdentityAuthorization(redirectUri.c_str()) != 0; }
+    int getIdentityState() { return Discord_GetIdentityState(); }
+    int getIdentityErrorCode() { return Discord_GetIdentityErrorCode(); }
+    std::string getIdentityUserId() { char value[32]{}; Discord_GetIdentityUserId(value, sizeof(value)); return value; }
+    std::string takeIdentityCode() { char value[1024]{}; Discord_TakeIdentityCode(value, sizeof(value)); return value; }
+    void cancelIdentityAuthorization() { Discord_CancelIdentityAuthorization(); }
 
 private:
     void update();

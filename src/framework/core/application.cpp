@@ -198,11 +198,16 @@ void Application::close()
         exit();
 }
 
-void Application::restart()
+bool Application::restart()
 {
+    const auto executable = g_resources.getRestartBinaryPath();
+    if (!g_platform.spawnProcess(executable, m_startupArgs)) {
+        g_logger.error("Nao foi possivel iniciar o cliente atualizado: {}. Verifique as permissoes e o Controle de Aplicativo do Windows.", executable);
+        return false;
+    }
     g_lua.callGlobalField<bool>("g_app", "onRestart");
-    g_platform.spawnProcess(g_resources.getBinaryPath(), m_startupArgs);
     exit();
+    return true;
 }
 
 std::string Application::getOs()

@@ -1,0 +1,45 @@
+{
+  "backup": "/mnt/d/otclient-main/.maintenance-backups/discord-diagnostics-20261010-0011",
+  "files": [
+    {
+      "path": "/mnt/d/otclient-main/third_party/discord-rpc/include/discord_rpc.h",
+      "before": "addab8c5c993cc010257c5648b7d817e1c358380767eb08b2a10b4b86ae3c8d1",
+      "after": "d00013b9e5747f0136611e5285337f1e5117597b8ee80888bc4dd2a1e16bb0df",
+      "mode": 511,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/mnt/d/otclient-main/third_party/discord-rpc/src/discord_rpc.cpp",
+      "before": "ef8cc58a2466078806e8d8c5cc5f2a1595e1af58b9bb9ee55a4e3c8482f166f3",
+      "after": "7014c7b16421fd47f00917f9ce6a53dc4e640dd6923fdd0185f9a5bfcfb6d870",
+      "mode": 511,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/mnt/d/otclient-main/src/framework/discord/discord.h",
+      "before": "a7e7d1c313e24d2c8a00067125edc8e175e6c292fbb41265a2c82fa32169ad0e",
+      "after": "95193e3458babbcf464515ec396ebfb39406f7b9a97d3b89b59b98ca1a97f4ef",
+      "mode": 511,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/mnt/d/otclient-main/src/framework/luafunctions.cpp",
+      "before": "be8c82bd7a20dea7bf19a54ff80a55223816e4c641a0b2fe594f10cac06f25fc",
+      "after": "77ff0db9dab91f7fa2b3269703cdba42f9dd612daeebdbe01c88f183a4d79411",
+      "mode": 511,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/mnt/d/otclient-main/modules/client_entergame/entergame.lua",
+      "before": "f2546d91bd11bfe0a026f93acfced27bd05c1ea208365538b8e30cd346ada713",
+      "after": "4b3ba79ecb013827811852a637a8e020fc4f99fe8178334585e03628999d1879",
+      "mode": 511,
+      "uid": 1000,
+      "gid": 1000
+    }
+  ]
+}

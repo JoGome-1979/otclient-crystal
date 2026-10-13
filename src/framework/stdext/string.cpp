@@ -121,6 +121,14 @@ namespace stdext
         return out;
     }
 
+    [[nodiscard]] std::string ui_text_to_latin1(std::string_view src) {
+        if (!is_valid_utf8(src))
+            return std::string(src);
+        auto normalized = utf8_to_latin1(src);
+        // Keep the original if this font encoding cannot represent every character.
+        return latin1_to_utf8(normalized) == src ? normalized : std::string(src);
+    }
+
     [[nodiscard]] std::string server_text_to_latin1(std::string_view src) {
         return is_valid_utf8(src) ? utf8_to_latin1(src) : std::string(src);
     }

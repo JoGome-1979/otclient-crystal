@@ -2,12 +2,20 @@
 -- change to ItemsDatabase.setTier(UIitem) to UIitem:setTier()
 ItemsDatabase = {}
 
+-- Raridade visual por ID, independente de preco ou venda em NPC.
+-- Cores: grey, green, blue, purple, yellow.
+ItemsDatabase.rarityOverrides = {
+    [54270] = "yellow", -- Anel da Eternidade: guardado
+    [54271] = "yellow", -- Anel da Eternidade: equipado
+    [54268] = "blue", -- Semente de Abobora
+}
+
 ItemsDatabase.rarityColors = {
     ["yellow"] = TextColors.yellow,
     ["purple"] = TextColors.purple,
     ["blue"] = TextColors.blue,
     ["green"] = TextColors.green,
-    ["grey"] = TextColors.grey,
+    ["grey"] = TextColors.grey
 }
 
 local function getColorForValue(value)
@@ -26,20 +34,28 @@ local function getColorForValue(value)
     end
 end
 
-local function clipfunction(value)
-    if value >= 1000000 then
-        return "128 0 32 32"
-    elseif value >= 100000 then
-        return "96 0 32 32"
-    elseif value >= 10000 then
-        return "64 0 32 32"
-    elseif value >= 1000 then
-        return "32 0 32 32"
-    elseif value >= 50 then
-        return "0 0 32 32"
+function ItemsDatabase.getRarity(item)
+    if type(item) == "number" then
+        item = g_things.getThingType(item, ThingCategoryItem)
     end
-    return ""
+    if not item then
+        return nil
+    end
+
+    local rarity = ItemsDatabase.rarityOverrides[item:getId()]
+    if rarity and ItemsDatabase.rarityColors[rarity] then
+        return rarity
+    end
+    return getColorForValue(item:getMeanPrice() or 0)
 end
+
+local rarityClips = {
+    grey = "0 0 32 32",
+    green = "32 0 32 32",
+    blue = "64 0 32 32",
+    purple = "96 0 32 32",
+    yellow = "128 0 32 32"
+}
 
 function ItemsDatabase.getClipAndImagePath(item)
     if not item then
@@ -50,40 +66,22 @@ function ItemsDatabase.getClipAndImagePath(item)
     if frameOption == "none" then
         return nil, nil, nil
     end
-    local imagePath = '/images/ui/item'
-    local clip = nil
 
-    if type(item) == "number" then
-        item = g_things.getThingType(item, ThingCategoryItem)
-    end
-
-    if not item then
+    local clip = rarityClips[ItemsDatabase.getRarity(item)]
+    if not clip then
         return nil, nil, nil
     end
 
-    if item then
-        local price = type(item) == "number" and item or (item and item:getMeanPrice()) or 0
-        local itemRarity = getColorForValue(price)
-        if itemRarity then
-            clip = clipfunction(price)
-            if clip ~= "" then
-                if frameOption == "frames" then
-                    imagePath = "/images/ui/rarity_frames"
-                elseif frameOption == "corners" then
-                    imagePath = "/images/ui/containerslot-coloredges"
-                end
-            else
-                clip = nil
-            end
-        end
+    local imagePath = "/images/ui/rarity_frames"
+    if frameOption == "corners" then
+        imagePath = "/images/ui/containerslot-coloredges"
     end
 
-    local clipObject = nil
-    if clip then
-        local x, y, w, h = clip:match("(%d+) (%d+) (%d+) (%d+)")
-        clipObject = { x = tonumber(x), y = tonumber(y), width = tonumber(w), height = tonumber(h) }
-    end
-
+    local x, y, w, h = clip:match("(%d+) (%d+) (%d+) (%d+)")
+    local clipObject = {
+        x = tonumber(x), y = tonumber(y),
+        width = tonumber(w), height = tonumber(h)
+    }
     return clip, imagePath, clipObject
 end
 
@@ -134,13 +132,12 @@ function ItemsDatabase.setColorLootMessage(text)
             return itemName
         end
 
-        local itemInfo = thingType:getMeanPrice()
-        if itemInfo then
-            local color = ItemsDatabase.getColorForRarity(getColorForValue(itemInfo))
-            return "{" .. itemName .. ", " .. color .. "}"
-        else
+        local rarity = ItemsDatabase.getRarity(thingType)
+        if not rarity then
             return itemName
         end
+        local color = ItemsDatabase.getColorForRarity(rarity)
+        return "{" .. itemName .. ", " .. color .. "}"
     end
     return text:gsub("{(.-)}", coloringLootName)
 end

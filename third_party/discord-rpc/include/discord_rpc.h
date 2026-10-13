@@ -86,6 +86,16 @@ DISCORD_EXPORT void Discord_UpdateConnection(void);
 DISCORD_EXPORT void Discord_UpdatePresence(const DiscordRichPresence* presence);
 DISCORD_EXPORT void Discord_ClearPresence(void);
 
+/* Desktop identity: authorization codes must be verified on the game backend. */
+DISCORD_EXPORT int Discord_RequestIdentityAuthorization(const char* redirectUri);
+DISCORD_EXPORT int Discord_GetIdentityState(void); /* -2 offline, -1 denied, 0 pending, 1 code, 2 idle */
+/* Numeric error for the current failed authorization; no OAuth values exposed. */
+DISCORD_EXPORT int Discord_GetIdentityErrorCode(void);
+DISCORD_EXPORT void Discord_GetIdentityUserId(char* output, int capacity);
+DISCORD_EXPORT void Discord_TakeIdentityCode(char* output, int capacity);
+DISCORD_EXPORT void Discord_CancelIdentityAuthorization(void);
+
+
 DISCORD_EXPORT void Discord_Respond(const char* userid, /* DISCORD_REPLY_ */ int reply);
 
 DISCORD_EXPORT void Discord_UpdateHandlers(DiscordEventHandlers* handlers);

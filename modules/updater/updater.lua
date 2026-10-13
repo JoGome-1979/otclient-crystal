@@ -287,7 +287,9 @@ local function updateFiles(data, keepCurrentFiles, skipAndroidPackage)
         if not entry then
           if binary and g_resources.updateExecutable(binary) == false then return end
           if restart then
-            g_app.restart()
+            if g_app.restart() == false then
+              Updater.error("Nao foi possivel iniciar o cliente atualizado. Verifique o Controle de Aplicativo do Windows e as permissoes do executavel. O download nao sera repetido automaticamente.")
+            end
           else
             if reloadModules then
               g_textures.clearCache()

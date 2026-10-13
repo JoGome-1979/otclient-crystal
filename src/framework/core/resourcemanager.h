@@ -104,6 +104,7 @@ public:
     std::unordered_map<std::string, std::string> decompressArchive(std::string dataOrPath);
 
     std::string getBinaryPath() { return m_binaryPath.string(); }
+    std::string getRestartBinaryPath() { return m_pendingBinaryPath.empty() ? m_binaryPath.string() : m_pendingBinaryPath.string(); }
 
 protected:
     std::vector<std::string> discoverPath(const std::filesystem::path& path, bool filenameOnly, bool recursive);
@@ -113,6 +114,7 @@ private:
     std::string m_writeDir;
     std::string m_userDirOverride;
     std::filesystem::path m_binaryPath;
+    std::filesystem::path m_pendingBinaryPath;
     std::deque<std::string> m_searchPaths;
 };
 

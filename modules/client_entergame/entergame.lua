@@ -20,7 +20,35 @@ local tokenWindow
 local authErrorBox
 local hasAttemptedAuthenticator = false
 
+local discordPolicy
+
 -- private functions
+-- The server sends the community requirement and invite in both login stages.
+-- Keep the error and its onOk flow; the actions only open the official pages.
+function EnterGame.displayLoginError(message)
+    local text = tostring(message or '')
+    local lower = text:lower()
+    local requiresDiscord = lower:find('discord', 1, true)
+        and (lower:find('https://discord.gg/', 1, true)
+            or lower:find('https://discord.com/invite/', 1, true))
+    if not requiresDiscord then
+        return displayErrorBox(tr('Login Error'), message)
+    end
+
+    local box
+    local close = function() box:ok() end
+    box = displayGeneralBox('Portoes de Crystal', text, {
+        { text = 'Voltar', callback = close },
+        { text = 'Minha conta', callback = function()
+            g_platform.openUrl((discordPolicy and discordPolicy.accountUrl) or 'https://crystalgames.com.br/?subtopic=accountmanagement')
+        end },
+        { text = 'Entrar no Discord', callback = function()
+            g_platform.openUrl((discordPolicy and discordPolicy.inviteUrl) or 'https://discord.gg/p55CbkCdEm')
+        end }
+    }, close, close)
+    return box
+end
+
 local function onError(protocol, message, errorCode)
     if loadBox then
         loadBox:destroy()
@@ -50,7 +78,7 @@ local function onError(protocol, message, errorCode)
         EnterGame.clearAccountFields()
     end
 
-    local errorBox = displayErrorBox(tr('Login Error'), message)
+    local errorBox = EnterGame.displayLoginError(message)
     connect(errorBox, {
         onOk = EnterGame.show
     })
@@ -353,6 +381,7 @@ function EnterGame.firstShow()
 end
 
 function EnterGame.terminate()
+    EnterGame.cancelDiscordAttempt()
     Keybind.delete("Misc.", "Change Character")
 
     disconnect(clientBox, {
@@ -767,6 +796,8 @@ function EnterGame.loginSuccess(requestId, jsonSession, jsonWorlds, jsonCharacte
 
     -- set session key
     G.sessionKey = session.sessionkey
+    G.discordSessionUsed = false
+    G.discordSessionExpires = g_clock.millis() + 110000
 
     onCharacterList(nil, characters, account)
 end
@@ -776,6 +807,118 @@ function EnterGame.loginFailed(requestId, msg, result)
         return
     end
     onError(nil, msg, result)
+end
+
+
+local discordAttempt = 0
+local discordEvent
+local discordHttp
+local function cancelDiscordAttempt()
+    discordAttempt = discordAttempt + 1
+    removeEvent(discordEvent)
+    discordEvent = nil
+    if discordHttp then HTTP.cancel(discordHttp); discordHttp = nil end
+    if g_discord and g_discord.cancelIdentityAuthorization then g_discord.cancelIdentityAuthorization() end
+end
+
+EnterGame.cancelDiscordAttempt = cancelDiscordAttempt
+
+-- Load policy on every attempt. No credentials are sent before policy and identity.
+function EnterGame.tryDiscordLogin(clientVersion, httpLogin, continuation)
+    cancelDiscordAttempt()
+    G.sessionKey = nil
+    G.discordIdentity = nil
+    local attempt = discordAttempt
+    local endpoint = Services.discordAccess or 'https://crystalgames.com.br/api/discord-access.php'
+    discordHttp = HTTP.getJSON(endpoint, function(policy, err)
+        if attempt ~= discordAttempt then return end
+        discordHttp = nil
+        if err or type(policy) ~= 'table' or type(policy.required) ~= 'boolean' then
+            onError(nil, 'Nao foi possivel consultar o acesso Discord. Tente novamente.', 3)
+            return
+        end
+        if type(policy.inviteUrl) ~= 'string' or not (policy.inviteUrl:match('^https://discord%.gg/[A-Za-z0-9%-]+$') or policy.inviteUrl:match('^https://discord%.com/invite/[A-Za-z0-9%-]+$')) then
+            policy.inviteUrl = 'https://discord.gg/p55CbkCdEm'
+        end
+        if type(policy.accountUrl) ~= 'string' or not policy.accountUrl:match('^https://crystalgames%.com%.br/') then
+            policy.accountUrl = 'https://crystalgames.com.br/?subtopic=accountmanagement'
+        end
+        discordPolicy = policy
+        if not policy.required then continuation(); return end
+        if clientVersion < 1281 or G.port == 7171 then
+            onError(nil, 'Atualize o cliente e use o login HTTPS para validar o Discord.', 3); return
+        end
+        if not g_discord or not g_discord.requestIdentityAuthorization then
+            onError(nil, 'Este cliente precisa ser atualizado para validar o Discord.', 3); return
+        end
+        if g_discord.getIdentityApplicationId() ~= policy.applicationId then
+            onError(nil, 'A aplicacao Discord deste cliente nao corresponde ao servidor. Atualize o cliente.', 3); return
+        end
+        local started = g_clock.millis()
+        local requested = false
+        local function poll()
+            if attempt ~= discordAttempt then return end
+            local state = g_discord.getIdentityState()
+            if not requested and state ~= -2 then
+                requested = g_discord.requestIdentityAuthorization(policy.redirectUri or "https://crystalgames.com.br/")
+                state = g_discord.getIdentityState()
+            end
+            if state == -1 then
+                local rpcError = g_discord.getIdentityErrorCode and g_discord.getIdentityErrorCode() or 0
+                local detail = rpcError ~= 0 and (' (RPC ' .. tostring(rpcError) .. ')') or ''
+                onError(nil, 'O Discord recusou a autorizacao do Crystal' .. detail .. '. Tente novamente.', 3); return
+            end
+            if g_clock.millis() - started > (requested and 120000 or 10000) then
+                cancelDiscordAttempt()
+                onError(nil, requested and 'A autorizacao Discord expirou. Tente novamente.'
+                    or 'Abra o Discord e entre na sua conta para jogar.', 3); return
+            end
+            if requested and state == 1 then
+                local code = g_discord.takeIdentityCode()
+                local userId = g_discord.getIdentityUserId()
+                if code == '' or userId == '' then
+                    onError(nil, 'O Discord foi desconectado. Abra o Discord e tente novamente.', 3); return
+                end
+                local account, password, token = G.account, G.password, G.authenticatorToken
+                local request = {type='login', email=account, password=password,
+                    token=token, discordCode=code, discordUserId=userId}
+                g_game.setClientVersion(clientVersion)
+                g_game.setProtocolVersion(g_game.getClientProtocolVersion(clientVersion))
+                g_game.chooseRsa(G.host)
+                discordHttp = HTTP.postJSON('https://crystalgames.com.br/login.php', request, function(data, failure)
+                    if attempt ~= discordAttempt then return end
+                    discordHttp = nil
+                    if failure or type(data) ~= 'table' then
+                        onError(nil, 'Falha ao validar a identidade Discord. Tente novamente.', 3); return
+                    end
+                    if data.errorMessage then onError(nil, data.errorMessage, data.errorCode or 3); return end
+                    if g_discord.getIdentityUserId() ~= userId or G.account ~= account or G.password ~= password then
+                        onError(nil, 'A conta mudou durante a autenticacao. Entre novamente.', 3); return
+                    end
+                    if type(data.session) ~= 'table' or type(data.playdata) ~= 'table' then
+                        onError(nil, 'Resposta de autenticacao invalida.', 3); return
+                    end
+                    G.discordIdentity = userId
+                    G.requestId = attempt
+                    EnterGame.loginSuccess(attempt, json.encode(data.session),
+                        json.encode(data.playdata.worlds), json.encode(data.playdata.characters))
+                end)
+                return
+            end
+            discordEvent = scheduleEvent(poll, 100)
+        end
+        poll()
+    end)
+end
+
+function EnterGame.validateDiscordSession()
+    if G.discordIdentity and (not g_discord or g_discord.getIdentityUserId() ~= G.discordIdentity) then
+        return false, 'Abra o Discord com a conta vinculada e autentique novamente.'
+    end
+    if G.discordIdentity and (G.discordSessionUsed or g_clock.millis() >= (G.discordSessionExpires or 0)) then
+        return false, 'Sua sessao Discord expirou ou ja foi usada. Entre novamente com login e senha.'
+    end
+    return true
 end
 
 function EnterGame.doLogin()
@@ -820,7 +963,9 @@ function EnterGame.doLogin()
     EnterGame.hide()
 
     if clientVersion >= 1281 and G.port ~= 7171 then
-        EnterGame.tryHttpLogin(clientVersion, httpLogin)
+        EnterGame.tryDiscordLogin(clientVersion, httpLogin, function()
+            EnterGame.tryHttpLogin(clientVersion, httpLogin)
+        end)
     else
         protocolLogin = ProtocolLogin.create()
         protocolLogin.onLoginError = onError

@@ -9,6 +9,7 @@
 #include <atomic>
 #include <chrono>
 #include <mutex>
+#include <cstdio>
 
 #ifndef DISCORD_DISABLE_IO_THREAD
 #include <condition_variable>
@@ -67,13 +68,23 @@ static QueuedMessage QueuedPresence{};
 static MsgQueue<QueuedMessage, MessageQueueSize> SendQueue;
 static MsgQueue<User, JoinQueueSize> JoinAskQueue;
 static User connectedUser;
+static std::mutex IdentityMutex;
+static bool IdentityConnected = false;
+static int IdentityState = -2;
+static int IdentityErrorCode = 0;
+static char IdentityCode[1024]{};
+static char IdentityUserId[32]{};
+static int IdentityNonce = 0;
+static char IdentityApplicationId[32]{};
+static QueuedMessage IdentityRequest{};
+
 
 // We want to auto connect, and retry on failure, but not as fast as possible. This does expoential
 // backoff from 0.5 seconds to 1 minute
 static Backoff ReconnectTimeMs(500, 60 * 1000);
 static auto NextConnect = std::chrono::system_clock::now();
 static int Pid{0};
-static int Nonce{1};
+static std::atomic<int> Nonce{1};
 
 #ifndef DISCORD_DISABLE_IO_THREAD
 static void Discord_UpdateConnection(void);
@@ -158,7 +169,25 @@ static void Discord_UpdateConnection(void)
             const char* nonce = GetStrMember(&message, "nonce");
 
             if (nonce) {
-                // in responses only -- should use to match up response when needed.
+                // A stale/cancelled response must never authorize a later login.
+                const char* cmd = GetStrMember(&message, "cmd");
+                if (cmd && strcmp(cmd, "AUTHORIZE") == 0) {
+                    std::lock_guard<std::mutex> guard(IdentityMutex);
+                    char expected[32];
+                    snprintf(expected, sizeof(expected), "%d", IdentityNonce);
+                    if (IdentityState == 0 && strcmp(nonce, expected) == 0) {
+                        const char* code = GetStrMember(GetObjMember(&message, "data"), "code");
+                        if ((!evtName || strcmp(evtName, "ERROR") != 0) && code &&
+                            strlen(code) > 0 && strlen(code) < sizeof(IdentityCode)) {
+                            StringCopy(IdentityCode, code);
+                            IdentityState = 1;
+                        } else {
+                            IdentityCode[0] = 0;
+                            IdentityErrorCode = GetIntMember(GetObjMember(&message, "data"), "code");
+                            IdentityState = -1;
+                        }
+                    }
+                }
 
                 if (evtName && strcmp(evtName, "ERROR") == 0) {
                     auto data = GetObjMember(&message, "data");
@@ -175,7 +204,16 @@ static void Discord_UpdateConnection(void)
 
                 auto data = GetObjMember(&message, "data");
 
-                if (strcmp(evtName, "ACTIVITY_JOIN") == 0) {
+                if (strcmp(evtName, "CURRENT_USER_UPDATE") == 0) {
+                    std::lock_guard<std::mutex> guard(IdentityMutex);
+                    const char* id = GetStrMember(data, "id", "");
+                    if (strcmp(id, IdentityUserId) != 0) {
+                        StringCopy(IdentityUserId, id);
+                        IdentityCode[0] = 0;
+                        IdentityState = 2;
+                    }
+                }
+                else if (strcmp(evtName, "ACTIVITY_JOIN") == 0) {
                     auto secret = GetStrMember(data, "secret");
                     if (secret) {
                         StringCopy(JoinGameSecret, secret);
@@ -213,6 +251,15 @@ static void Discord_UpdateConnection(void)
                 }
             }
         }
+
+        // Identity has its own mutex-protected queue; SendQueue is SPSC.
+        QueuedMessage identity{};
+        {
+            std::lock_guard<std::mutex> guard(IdentityMutex);
+            identity.Copy(IdentityRequest);
+            IdentityRequest.length = 0;
+        }
+        if (identity.length) Connection->Write(identity.buffer, identity.length);
 
         // writes
         if (UpdatePresence.exchange(false) && QueuedPresence.length) {
@@ -290,6 +337,10 @@ extern "C" DISCORD_EXPORT void Discord_Initialize(const char* applicationId,
     }
 
     Pid = GetProcessId();
+    {
+        std::lock_guard<std::mutex> guard(IdentityMutex);
+        StringCopy(IdentityApplicationId, applicationId);
+    }
 
     {
         std::lock_guard<std::mutex> guard(HandlerMutex);
@@ -334,10 +385,25 @@ extern "C" DISCORD_EXPORT void Discord_Initialize(const char* applicationId,
                 connectedUser.avatar[0] = 0;
             }
         }
+        {
+            std::lock_guard<std::mutex> guard(IdentityMutex);
+            IdentityConnected = userId && userId[0];
+            StringCopy(IdentityUserId, userId ? userId : "");
+            IdentityCode[0] = 0;
+            IdentityState = IdentityConnected ? 2 : -2;
+        }
         WasJustConnected.exchange(true);
         ReconnectTimeMs.reset();
     };
     Connection->onDisconnect = [](int err, const char* message) {
+        {
+            std::lock_guard<std::mutex> guard(IdentityMutex);
+            IdentityConnected = false;
+            IdentityRequest.length = 0;
+            IdentityUserId[0] = 0;
+            IdentityCode[0] = 0;
+            IdentityState = -2;
+        }
         LastDisconnectErrorCode = err;
         StringCopy(LastDisconnectErrorMessage, message);
         WasJustDisconnected.exchange(true);
@@ -355,6 +421,13 @@ extern "C" DISCORD_EXPORT void Discord_Shutdown(void)
     Connection->onConnect = nullptr;
     Connection->onDisconnect = nullptr;
     Handlers = {};
+    {
+        std::lock_guard<std::mutex> guard(IdentityMutex);
+        IdentityConnected = false;
+        IdentityUserId[0] = 0;
+        IdentityCode[0] = 0;
+        IdentityState = -2;
+    }
     QueuedPresence.length = 0;
     UpdatePresence.exchange(false);
     if (IoThread != nullptr) {
@@ -501,4 +574,71 @@ extern "C" DISCORD_EXPORT void Discord_UpdateHandlers(DiscordEventHandlers* newH
         Handlers = {};
     }
     return;
+}
+
+extern "C" DISCORD_EXPORT int Discord_RequestIdentityAuthorization(const char* redirectUri)
+{
+    std::lock_guard<std::mutex> guard(IdentityMutex);
+    if (!IdentityConnected || IdentityState == 0) return 0;
+    auto message = &IdentityRequest;
+    IdentityErrorCode = 0;
+    IdentityCode[0] = 0;
+    IdentityNonce = Nonce++;
+    char nonce[32];
+    snprintf(nonce, sizeof(nonce), "%d", IdentityNonce);
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    writer.StartObject();
+    writer.Key("cmd"); writer.String("AUTHORIZE");
+    writer.Key("nonce"); writer.String(nonce);
+    writer.Key("args"); writer.StartObject();
+    writer.Key("client_id"); writer.String(IdentityApplicationId);
+    // RPC selects its registered redirect internally; an explicit redirect_uri is rejected.
+    (void)redirectUri;
+    writer.Key("scopes"); writer.StartArray(); writer.String("identify"); writer.EndArray();
+    writer.EndObject(); writer.EndObject();
+    message->length = buffer.GetSize();
+    memcpy(message->buffer, buffer.GetString(), message->length);
+    IdentityState = 0;
+    SignalIOActivity();
+    return 1;
+}
+
+extern "C" DISCORD_EXPORT int Discord_GetIdentityState(void)
+{
+    std::lock_guard<std::mutex> guard(IdentityMutex);
+    return IdentityState;
+}
+
+extern "C" DISCORD_EXPORT int Discord_GetIdentityErrorCode(void)
+{
+    std::lock_guard<std::mutex> guard(IdentityMutex);
+    return IdentityState == -1 ? IdentityErrorCode : 0;
+}
+
+extern "C" DISCORD_EXPORT void Discord_GetIdentityUserId(char* output, int capacity)
+{
+    if (!output || capacity <= 0) return;
+    std::lock_guard<std::mutex> guard(IdentityMutex);
+    snprintf(output, static_cast<size_t>(capacity), "%s", IdentityUserId);
+}
+
+extern "C" DISCORD_EXPORT void Discord_TakeIdentityCode(char* output, int capacity)
+{
+    if (!output || capacity <= 0) return;
+    std::lock_guard<std::mutex> guard(IdentityMutex);
+    output[0] = 0;
+    if (IdentityState != 1 || strlen(IdentityCode) >= static_cast<size_t>(capacity)) return;
+    snprintf(output, static_cast<size_t>(capacity), "%s", IdentityCode);
+    IdentityCode[0] = 0;
+    IdentityRequest.length = 0;
+    IdentityState = IdentityConnected ? 2 : -2;
+}
+
+extern "C" DISCORD_EXPORT void Discord_CancelIdentityAuthorization(void)
+{
+    std::lock_guard<std::mutex> guard(IdentityMutex);
+    IdentityCode[0] = 0;
+    IdentityRequest.length = 0;
+    IdentityState = IdentityConnected ? 2 : -2;
 }
